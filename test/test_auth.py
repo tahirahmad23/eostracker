@@ -491,7 +491,6 @@ def test_refresh_tokens_success(db_session):
     
     # Refresh tokens
     result = refresh_tokens(old_refresh_token, db=db_session)
-    print(result["data"]["access_token"] == reg_result["data"]["access_token"])
     assert result["success"] is True
     assert "access_token" in result["data"]
     assert "refresh_token" in result["data"]
