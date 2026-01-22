@@ -14,7 +14,7 @@ python-dotenv==1.0.0
 bcrypt<4.0 
 passlib==1.7.4
 # Validation
-pydantic==2.5.0
+pydantic
 pydantic-settings==2.1.0
 email-validator==2.1.0
 
@@ -22,5 +22,19 @@ email-validator==2.1.0
 pytest==7.4.3
 pytest-asyncio==0.21.1
 
+
+# Development
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
 # Date/Time
 python-dateutil==2.8.2
+
+# Payment Processing
+requests>=2.31
+pypaystack2 == 3.1.0
+
+# Email & Alerts (Module 6)
+apscheduler==3.10.4
+resend==0.8.0
