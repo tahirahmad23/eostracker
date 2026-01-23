@@ -162,8 +162,8 @@ def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
             }
         
         # Extract subscription details
-        subscription_code = data.get("subscription_code")
-        customer_code = customer.get("customer_code")
+        paystack_subscription_code= data.get("paystack_subscription_code")
+        paystack_customer_code = customer.get("paystack_customer_code")
         plan_code = data.get("plan", {}).get("plan_code")
         
         # Calculate billing period
@@ -172,7 +172,7 @@ def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
         
         # Check if subscription already exists (idempotency)
         existing = db.query(Subscription).filter(
-            Subscription.paystack_subscription_code == subscription_code
+            Subscription.paystack_subscription_code == paystack_subscription_code
         ).first()
         
         if existing:
@@ -185,8 +185,8 @@ def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
         # Create subscription record
         subscription = Subscription(
             user_id=user.id,
-            subscription_code=subscription_code,
-            customer_code=customer_code,
+            paystack_subscription_code=paystack_subscription_code,
+            paystack_customer_code=paystack_customer_code,
             plan_code=plan_code,
             status="active",
             current_period_start=current_period_start,
@@ -237,9 +237,9 @@ def _handle_subscription_disable(payload: Dict, db: Session) -> Dict:
     try:
         # Extract subscription data from payload
         data = payload.get("data", {})
-        subscription_code = data.get("subscription_code")
+        paystack_subscription_code = data.get("paystack_subscription_code")
         
-        if not subscription_code:
+        if not paystack_subscription_code:
             return {
                 "success": False,
                 "error": "Subscription code not found in webhook payload"
@@ -247,13 +247,13 @@ def _handle_subscription_disable(payload: Dict, db: Session) -> Dict:
         
         # Find subscription
         subscription = db.query(Subscription).filter(
-            Subscription.paystack_subscription_code == subscription_code
+            Subscription.paystack_subscription_code == paystack_subscription_code
         ).first()
         
         if not subscription:
             return {
                 "success": False,
-                "error": f"Subscription not found: {subscription_code}"
+                "error": f"Subscription not found: {paystack_subscription_code}"
             }
         
         # Get associated user
@@ -261,7 +261,7 @@ def _handle_subscription_disable(payload: Dict, db: Session) -> Dict:
         if not user:
             return {
                 "success": False,
-                "error": f"User not found for subscription: {subscription_code}"
+                "error": f"User not found for subscription: {paystack_subscription_code}"
             }
         
         # Update subscription status

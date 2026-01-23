@@ -214,7 +214,7 @@ def test_get_subscription_exists(pro_user, db_session):
     
     assert result["success"] is True
     assert result["data"] is not None
-    assert result["data"]["subscription_code"] == "SUB_test123"
+    assert result["data"]["paystack_subscription_code"] == "SUB_test123"
     assert result["data"]["status"] == "active"
     assert result["data"]["plan_code"] == "PLN_pro"
 
@@ -242,8 +242,8 @@ def test_get_subscription_includes_all_fields(pro_user, db_session):
     assert result["success"] is True
     data = result["data"]
     assert "id" in data
-    assert "subscription_code" in data
-    assert "customer_code" in data
+    assert "paystack_subscription_code" in data
+    assert "paystack_customer_code" in data
     assert "plan_code" in data
     assert "status" in data
     assert "current_period_start" in data
@@ -367,10 +367,10 @@ def test_webhook_subscription_create(test_user, db_session, webhook_secret):
     payload = {
         "event": "subscription.create",
         "data": {
-            "subscription_code": "SUB_webhook123",
+            "paystack_subscription_code": "SUB_webhook123",
             "customer": {
                 "email": test_user.email,
-                "customer_code": "CUS_webhook123"
+                "paystack_customer_code": "CUS_webhook123"
             },
             "plan": {
                 "plan_code": "PLN_pro"
@@ -418,7 +418,7 @@ def test_webhook_subscription_disable(pro_user, db_session, webhook_secret):
     payload = {
         "event": "subscription.disable",
         "data": {
-            "subscription_code": subscription.paystack_subscription_code
+            "paystack_subscription_code": subscription.paystack_subscription_code
         }
     }
     
@@ -535,10 +535,10 @@ def test_tier_update_after_create(test_user, db_session, webhook_secret):
     payload = {
         "event": "subscription.create",
         "data": {
-            "subscription_code": "SUB_tier_test",
+            "paystack_subscription_code": "SUB_tier_test",
             "customer": {
                 "email": test_user.email,
-                "customer_code": "CUS_tier_test"
+                "paystack_customer_code": "CUS_tier_test"
             },
             "plan": {
                 "plan_code": "PLN_pro"
@@ -579,7 +579,7 @@ def test_tier_update_after_disable(pro_user, db_session, webhook_secret):
     payload = {
         "event": "subscription.disable",
         "data": {
-            "subscription_code": subscription.paystack_subscription_code
+            "paystack_subscription_code": subscription.paystack_subscription_code
         }
     }
     
@@ -613,10 +613,10 @@ def test_subscription_record_created_correctly(test_user, db_session, webhook_se
     payload = {
         "event": "subscription.create",
         "data": {
-            "subscription_code": "SUB_record_test",
+            "paystack_subscription_code": "SUB_record_test",
             "customer": {
                 "email": test_user.email,
-                "customer_code": "CUS_record_test"
+                "paystack_customer_code": "CUS_record_test"
             },
             "plan": {
                 "plan_code": "PLN_pro_monthly"
@@ -641,7 +641,7 @@ def test_subscription_record_created_correctly(test_user, db_session, webhook_se
     subscription = db_session.query(Subscription).filter(
         Subscription.user_id == test_user.id
     ).first()
-    
+    print(subscription.cancelled_at)
     assert subscription is not None
     assert subscription.paystack_subscription_code == "SUB_record_test"
     assert subscription.paystack_customer_code == "CUS_record_test"
@@ -673,10 +673,10 @@ def test_idempotent_webhook_processing(test_user, db_session, webhook_secret):
     payload = {
         "event": "subscription.create",
         "data": {
-            "subscription_code": "SUB_idempotent",
+            "paystack_subscription_code": "SUB_idempotent",
             "customer": {
                 "email": test_user.email,
-                "customer_code": "CUS_idempotent"
+                "paystack_customer_code": "CUS_idempotent"
             },
             "plan": {
                 "plan_code": "PLN_pro"

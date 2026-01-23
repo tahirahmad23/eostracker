@@ -154,7 +154,7 @@ class Subscription(Base):
     cancel_at_period_end = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    cancelled_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    cancelled_at = Column(DateTime, default=None, onupdate=datetime.utcnow)
     
     # Relationships
     user = relationship("User", back_populates="subscription")

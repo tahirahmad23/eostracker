@@ -127,8 +127,8 @@ def get_subscription(user_id: int, db: Session) -> Dict:
         
         Subscription details include:
         - id: Subscription record ID
-        - subscription_code: Paystack subscription code
-        - customer_code: Paystack customer code
+        - paystack_subscription_code: Paystack subscription code
+        - paystack_customer_code: Paystack customer code
         - plan_code: Pro plan code
         - status: "active" or "cancelled"
         - current_period_start: Billing period start date
@@ -165,8 +165,8 @@ def get_subscription(user_id: int, db: Session) -> Dict:
             "success": True,
             "data": {
                 "id": subscription.id,
-                "subscription_code": subscription.paystack_subscription_code,
-                "customer_code": subscription.paystack_customer_code,
+                "paystack_subscription_code": subscription.paystack_subscription_code,
+                "paystack_customer_code": subscription.paystack_customer_code,
                 "plan_code": subscription.plan_code,
                 "status": subscription.status,
                 "current_period_start": subscription.current_period_start.isoformat(),
@@ -232,7 +232,7 @@ def cancel_subscription(user_id: int, db: Session) -> Dict:
         # Cancel on Paystack
         paystack = PaystackClient()
         cancel_result = paystack.cancel_subscription(
-            subscription_code=subscription.paystack_subscription_code,
+            paystack_subscription_code=subscription.paystack_subscription_code,
             email_token=subscription.paystack_customer_code
         )
         
@@ -254,7 +254,7 @@ def cancel_subscription(user_id: int, db: Session) -> Dict:
             "success": True,
             "data": {
                 "id": subscription.id,
-                "subscription_code": subscription.paystack_subscription_code,
+                "paystack_subscription_code": subscription.paystack_subscription_code,
                 "status": subscription.status,
                 "cancelled_at": subscription.cancelled_at.isoformat()
             }
