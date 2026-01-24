@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EOS Tracker{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold leading-tight text-gray-900">Dashboard</h1>
+    </header>
+    
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Stats -->
+        <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Devices</dt>
+                                <dd class="text-3xl font-semibold text-gray-900">{{ total_devices }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active</dt>
+                                <dd class="text-3xl font-semibold text-green-600">{{ active_devices }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Approaching EOS</dt>
+                                <dd class="text-3xl font-semibold text-yellow-600">{{ approaching_devices }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">End of Support</dt>
+                                <dd class="text-3xl font-semibold text-red-600">{{ eos_devices }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Upcoming Alerts -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-5 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Upcoming EOS Alerts</h2>
+                    <p class="mt-1 text-sm text-gray-500">Devices with EOS in the next 90 days</p>
+                </div>
+                <div class="p-6">
+                    {% if upcoming_alerts %}
+                    <ul class="divide-y divide-gray-200">
+                        {% for device in upcoming_alerts %}
+                        <li class="py-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">
+                                        {{ device.device.vendor }} {{ device.device.model }}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        EOS: {{ device.device.eos_date }}
+                                    </p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        {{ device.device.days_until_eos }} days
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-4">No devices approaching EOS in the next 90 days</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Devices -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-5 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Recently Added Devices</h2>
+                </div>
+                <div class="p-6">
+                    {% if recent_devices %}
+                    <ul class="divide-y divide-gray-200">
+                        {% for device in recent_devices %}
+                        <li class="py-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">
+                                        {{ device.custom_name or (device.device.vendor + " " + device.device.model) }}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        Added {{ device.added_at[:10] }}
+                                    </p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    {% if device.device.status == "active" %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                                    {% elif device.device.status == "approaching" %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Approaching</span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">EOS</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-4">No devices tracked yet</p>
+                    {% endif %}
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <a href="/tracking" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">View all devices →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <a href="/tracking/add" class="relative block p-6 bg-white border border-gray-300 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all">
+                    <h3 class="text-lg font-medium text-gray-900">Add Device</h3>
+                    <p class="mt-2 text-sm text-gray-500">Start tracking a new device</p>
+                </a>
+                
+                <form action="/api/reports/generate" method="POST" class="relative block p-6 bg-white border border-gray-300 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer">
+                    <h3 class="text-lg font-medium text-gray-900">Generate Report</h3>
+                    <p class="mt-2 text-sm text-gray-500">Download PDF report of your devices</p>
+                    <button type="submit" class="absolute inset-0 w-full h-full opacity-0"></button>
+                </form>
+                
+                {% if current_user.tier == "free" %}
+                <a href="/subscription" class="relative block p-6 bg-indigo-50 border border-indigo-300 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all">
+                    <h3 class="text-lg font-medium text-indigo-900">Upgrade to Pro</h3>
+                    <p class="mt-2 text-sm text-indigo-700">Unlock unlimited device tracking</p>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

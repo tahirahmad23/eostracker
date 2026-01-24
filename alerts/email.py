@@ -16,7 +16,7 @@ Result = Dict[str, Any]
 
 # Email configuration from environment
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "alerts@eosalert.com")
+FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL")
 
 # Configure Resend
 if RESEND_API_KEY:
@@ -379,7 +379,6 @@ def send_welcome_email(user_email: str, user_name: str) -> Result:
         # Create email content
         html_body = _create_welcome_email_html(user_name)
         subject = "🎉 Welcome to EOS Alert - Get Started Today!"
-        
         # Send email via Resend
         params = {
             "from": FROM_EMAIL,

@@ -10,7 +10,7 @@ Use these in FastAPI route handlers to require authentication.
 
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status,Cookie
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
@@ -21,7 +21,7 @@ from auth.service import validate_token
 
 # HTTP Bearer token security scheme
 security = HTTPBearer()
-
+security_optional = HTTPBearer(auto_error=False)
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -81,7 +81,34 @@ async def get_current_user(
     
     return user
 
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional), # Use loose scheme
+    token: Optional[str] = Cookie(None, alias="access_token"),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    Get current user if authenticated, None otherwise.
+    Now correctly allows unauthenticated users on public pages.
+    """
+    # Check Cookie first if credentials aren't in header
+    raw_token = token
+    if credentials:
+        raw_token = credentials.credentials
 
+    if not raw_token:
+        return None
+
+    try:
+        # Manually validate rather than calling get_current_user (to avoid the 401 redirect)
+        result = validate_token(raw_token, db)
+        if not result["success"]:
+            return None
+        
+        user_id = result["data"]
+        return db.query(User).filter(User.id == user_id).first()
+    except Exception:
+        return None
+    
 async def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:

@@ -201,7 +201,8 @@ class TestDatabaseModels:
             status=SubscriptionStatus.ACTIVE,
             current_period_start=datetime.utcnow(),
             current_period_end=datetime.utcnow() + timedelta(days=30),
-            cancel_at_period_end=False
+            cancel_at_period_end=False,
+            plan_code = "Pro_plan"
         )
         test_db.add(subscription)
         test_db.commit()

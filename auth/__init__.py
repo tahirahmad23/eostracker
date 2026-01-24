@@ -37,7 +37,8 @@ from auth.security import (
 from auth.dependencies import (
     get_current_user,
     get_current_active_user,
-    require_pro_tier
+    require_pro_tier,
+    get_current_user_optional
 )
 
 
@@ -56,4 +57,5 @@ __all__ = [
     "get_current_user",
     "get_current_active_user",
     "require_pro_tier",
+    "get_current_user_optional"
 ]

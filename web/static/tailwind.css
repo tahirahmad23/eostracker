@@ -1,0 +1,6 @@
+/* Tailwind CSS is loaded from CDN in templates */
+/* This file can be used for custom CSS overrides */
+
+.status-active { color: #10b981; }
+.status-approaching { color: #f59e0b; }
+.status-eos { color: #ef4444; }

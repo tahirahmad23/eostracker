@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Add Device - EOS Tracker{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <header class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold leading-tight text-gray-900">Add Device to Tracking</h1>
+    </header>
+    
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mt-8 bg-white shadow sm:rounded-lg">
+            <form action="/tracking/add" method="POST" class="px-6 py-6 space-y-6">
+                <div>
+                    <label for="device_id" class="block text-sm font-medium text-gray-700">Select Device</label>
+                    <select id="device_id" name="device_id" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">Choose a device...</option>
+                        {% for device in devices %}
+                        <option value="{{ device.id }}">{{ device.vendor }} {{ device.model }} - EOS: {{ device.eos_date }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-2 text-sm text-gray-500">Search for devices in our <a href="/search" class="text-indigo-600 hover:text-indigo-500">device database</a></p>
+                </div>
+
+                <div>
+                    <label for="custom_name" class="block text-sm font-medium text-gray-700">Custom Name (Optional)</label>
+                    <input type="text" name="custom_name" id="custom_name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="My Production Router">
+                    <p class="mt-2 text-sm text-gray-500">Give this device a memorable name</p>
+                </div>
+
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700">Notes (Optional)</label>
+                    <textarea id="notes" name="notes" rows="3" class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Location, criticality, or other notes..."></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <a href="/tracking" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        Add Device
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

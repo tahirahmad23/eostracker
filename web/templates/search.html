@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Search Devices - EOS Tracker{% endblock %}
+
+{% block content %}
+<div class="bg-white py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Search Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Device Database</h1>
+            <p class="mt-2 text-gray-600">Search our comprehensive database of network equipment EOS dates</p>
+        </div>
+
+        <!-- Search Form -->
+        <form action="/search" method="GET" class="mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search by vendor or model..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                
+                <select name="vendor" class="px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">All Vendors</option>
+                    {% for vendor in vendors %}
+                    <option value="{{ vendor }}" {% if selected_vendor == vendor %}selected{% endif %}>{{ vendor }}</option>
+                    {% endfor %}
+                </select>
+                
+                <select name="device_type" class="px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">All Types</option>
+                    {% for type in device_types %}
+                    <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+                
+                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    Search
+                </button>
+            </div>
+        </form>
+
+        <!-- Results Count -->
+        <div class="mb-4">
+            <p class="text-sm text-gray-600">{{ total }} devices found</p>
+        </div>
+
+        <!-- Results Grid -->
+        {% if devices %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for device in devices %}
+            <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                <h3 class="text-lg font-semibold text-gray-900">{{ device.vendor }} {{ device.model }}</h3>
+                <p class="mt-1 text-sm text-gray-500">{{ device.device_type }}</p>
+                
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">EOS Date:</span>
+                        <span class="font-medium">{{ device.eos_date }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Days Until EOS:</span>
+                        <span class="font-medium {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-green-600{% endif %}">
+                            {{ device.days_until_eos }} days
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    {% if device.status == "active" %}
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                    {% elif device.status == "approaching" %}
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Approaching EOS</span>
+                    {% else %}
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">End of Support</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4">
+                    <a href="/device/{{ device.slug }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                        View Details →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pages > 1 %}
+        <div class="mt-8 flex justify-center">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                {% if page > 1 %}
+                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page - 1 }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Previous
+                </a>
+                {% endif %}
+                
+                {% for p in range(1, pages + 1) %}
+                    {% if p == page %}
+                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                        {{ p }}
+                    </span>
+                    {% elif p <= 3 or p > pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                    <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ p }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        {{ p }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page < pages %}
+                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page + 1 }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Next
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-500">No devices found matching your search criteria.</p>
+            <a href="/search" class="mt-4 inline-block text-indigo-600 hover:text-indigo-900">
+                Clear filters
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
