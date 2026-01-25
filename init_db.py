@@ -9,7 +9,7 @@ Run this to set up the database from scratch:
 """
 
 import sys
-from database import init_db, check_connection, seed_devices
+from database import init_db, check_connection, seed_devices,DATABASE_URL
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     print("EOS Tracker - Database Initialization")
     print("=" * 60)
     print()
-    
+    print(DATABASE_URL)
     # Step 1: Check connection
     print("Step 1: Checking database connection...")
     result = check_connection()
@@ -28,6 +28,7 @@ def main():
         print("  1. PostgreSQL is running")
         print("  2. DATABASE_URL environment variable is set")
         print("  3. Database credentials are correct")
+
         sys.exit(1)
     
     print(f"✅ Connected to: {result['data']['url']}")

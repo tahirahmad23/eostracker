@@ -3,8 +3,8 @@ API Routes
 JSON API endpoints for device search, tracking, and reports
 """
 
-from fastapi import APIRouter, Depends, UploadFile, File, Query
-from fastapi.responses import Response, JSONResponse
+from fastapi import APIRouter, Depends, UploadFile, File, Query,Request
+from fastapi.responses import Response, JSONResponse,RedirectResponse
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -20,6 +20,14 @@ from tracking import (
     export_to_csv
 )
 from reports import generate_pdf_report, generate_csv_export
+from pydantic import BaseModel
+from web.routes.auth import set_flash_message, get_flash_messages
+
+class TrackDeviceRequest(BaseModel):
+    device_id: int
+    custom_name: Optional[str] = None
+    notes: Optional[str] = None
+
 
 router = APIRouter()
 
@@ -102,9 +110,7 @@ def api_list_tracked_devices(
 
 @router.post("/tracking")
 def api_add_tracked_device(
-    device_id: int,
-    custom_name: Optional[str] = None,
-    notes: Optional[str] = None,
+    payload: TrackDeviceRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -120,8 +126,13 @@ def api_add_tracked_device(
     
     Returns created TrackedDeviceInfo
     """
-    result = add_tracked_device(current_user.id, device_id, custom_name, notes, db)
-    
+    result = add_tracked_device(
+        current_user.id, 
+        payload.device_id, 
+        payload.custom_name, 
+        payload.notes, 
+        db
+    )
     if result["success"]:
         return {
             "success": True,
@@ -161,6 +172,7 @@ def api_remove_tracked_device(
 
 @router.post("/tracking/import")
 async def api_import_csv(
+    request : Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -183,6 +195,10 @@ async def api_import_csv(
             "success": True,
             "data": result["data"]
         }
+    elif "CSV export is a Pro feature" in result["error"]:
+        set_flash_message(request, result["error"], "error")
+        # Redirect to pricing so they can upgrade
+        return RedirectResponse(url="/subscription", status_code=303)
     else:
         return JSONResponse(
             status_code=400,
@@ -192,6 +208,7 @@ async def api_import_csv(
 
 @router.get("/tracking/export")
 def api_export_csv(
+    request : Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -201,7 +218,6 @@ def api_export_csv(
     Returns CSV file for download
     """
     result = export_to_csv(current_user.id, db)
-    
     if result["success"]:
         return Response(
             content=result["data"],
@@ -210,6 +226,10 @@ def api_export_csv(
                 "Content-Disposition": "attachment; filename=tracked_devices.csv"
             }
         )
+    elif "CSV export is a Pro feature" in result["error"]:
+        set_flash_message(request, result["error"], "error")
+        # Redirect to pricing so they can upgrade
+        return RedirectResponse(url="/subscription", status_code=303)
     else:
         return JSONResponse(
             status_code=400,

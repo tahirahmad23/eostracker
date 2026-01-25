@@ -6,8 +6,63 @@
     <meta name="description" content="{% block meta_description %}Track End-of-Support dates for network infrastructure. Never miss critical device EOS deadlines.{% endblock %}">
     <title>{% block title %}EOS Tracker - Network Device End-of-Support Tracking{% endblock %}</title>
     
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': {
+                            50: '#e6f0f5',
+                            100: '#cce1eb',
+                            200: '#99c3d7',
+                            300: '#66a5c3',
+                            400: '#3387af',
+                            500: '#00699b',
+                            600: '#00547c',
+                            700: '#003f5d',
+                            800: '#002a3e',
+                            900: '#00151f',
+                        },
+                        'accent': {
+                            50: '#e6f5f0',
+                            100: '#ccebe1',
+                            200: '#99d7c3',
+                            300: '#66c3a5',
+                            400: '#33af87',
+                            500: '#009b69',
+                            600: '#007c54',
+                            700: '#005d3f',
+                            800: '#003e2a',
+                            900: '#001f15',
+                        },
+                        'neutral': {
+                            50: '#f8f9fa',
+                            100: '#f1f3f5',
+                            200: '#e9ecef',
+                            300: '#dee2e6',
+                            400: '#ced4da',
+                            500: '#adb5bd',
+                            600: '#6c757d',
+                            700: '#495057',
+                            800: '#343a40',
+                            900: '#212529',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['IBM Plex Sans', 'system-ui', '-apple-system', 'sans-serif'],
+                        'mono': ['IBM Plex Mono', 'Consolas', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
     
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -15,32 +70,150 @@
     <!-- Custom CSS -->
     <style>
         [x-cloak] { display: none !important; }
+        
+        body {
+            font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+        }
+        
+        .code-font {
+            font-family: 'IBM Plex Mono', Consolas, monospace;
+        }
+        
+        /* Status indicators */
+        .status-indicator {
+            position: relative;
+            padding-left: 1rem;
+        }
+        
+        .status-indicator::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        
+        .status-indicator.status-active::before {
+            background-color: #009b69;
+            box-shadow: 0 0 0 2px rgba(0, 155, 105, 0.2);
+        }
+        
+        .status-indicator.status-approaching::before {
+            background-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+        
+        .status-indicator.status-eos::before {
+            background-color: #dc2626;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+        }
+        
+        /* Navigation active state */
+        .nav-link {
+            position: relative;
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: #00699b;
+        }
+        
+        .nav-link.active {
+            color: #00699b;
+        }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #00699b;
+        }
+        
+        /* Card hover effects */
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background-color: #00699b;
+            color: white;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #00547c;
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid #ced4da;
+            color: #495057;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #adb5bd;
+        }
+        
+        /* Table enhancements */
+        .data-table {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .data-table tbody tr {
+            transition: background-color 0.15s;
+        }
+        
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
     </style>
     
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50">
+<body class="bg-neutral-50 text-neutral-900">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <nav class="bg-white border-b border-neutral-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex">
                     <!-- Logo -->
                     <div class="flex-shrink-0 flex items-center">
-                        <a href="/" class="text-2xl font-bold text-indigo-600">
-                            EOS Tracker
+                        <a href="/" class="flex items-center space-x-2">
+                            <svg class="w-8 h-8 text-primary-600" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="4" y="4" width="24" height="24" rx="2" stroke="currentColor" stroke-width="2"/>
+                                <path d="M4 12H28" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="10" cy="8" r="1" fill="currentColor"/>
+                                <circle cx="14" cy="8" r="1" fill="currentColor"/>
+                                <circle cx="18" cy="8" r="1" fill="currentColor"/>
+                                <path d="M8 18H24M8 22H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="text-xl font-semibold text-neutral-900 tracking-tight">EOS<span class="text-primary-600">Tracker</span></span>
                         </a>
                     </div>
                     
                     <!-- Navigation Links -->
-                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
-                        <a href="/" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-indigo-600">
+                    <div class="hidden sm:ml-10 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium text-neutral-700">
                             Home
                         </a>
-                        <a href="/search" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900">
-                            Search Devices
+                        <a href="/search" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium text-neutral-600 hover:text-neutral-900">
+                            Device Database
                         </a>
-                        <a href="/pricing" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900">
+                        <a href="/pricing" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium text-neutral-600 hover:text-neutral-900">
                             Pricing
                         </a>
                     </div>
@@ -52,39 +225,41 @@
                         <!-- User dropdown menu -->
                         <div class="ml-3 relative" x-data="{ open: false }">
                             <div>
-                                <button @click="open = !open" type="button" class="flex items-center max-w-xs rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    <span class="sr-only">Open user menu</span>
-                                    <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                                        <span class="text-sm font-medium text-white">{{ current_user.full_name[0].upper() }}</span>
+                                <button @click="open = !open" type="button" class="flex items-center max-w-xs text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-md px-2 py-1 hover:bg-neutral-50 transition">
+                                    <div class="h-8 w-8 rounded bg-primary-600 flex items-center justify-center">
+                                        <span class="text-sm font-semibold text-white">{{ current_user.full_name[0].upper() }}</span>
                                     </div>
-                                    <span class="ml-3 text-sm font-medium text-gray-700">{{ current_user.full_name }}</span>
-                                    <svg class="ml-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <span class="ml-3 text-sm font-medium text-neutral-900">{{ current_user.full_name }}</span>
+                                    <svg class="ml-2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                     </svg>
                                 </button>
                             </div>
                             
-                            <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                                <a href="/tracking" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Devices</a>
-                                <a href="/subscription" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Subscription
-                                    {% if current_user.tier == "pro" %}
-                                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">Pro</span>
-                                    {% endif %}
-                                </a>
-                                <form action="/logout" method="POST" class="block">
-                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
-                                </form>
+                            <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <div class="py-1">
+                                    <a href="/dashboard" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">Dashboard</a>
+                                    <a href="/tracking" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">My Devices</a>
+                                    <a href="/subscription" class="flex items-center justify-between px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">
+                                        <span>Subscription</span>
+                                        {% if current_user.tier == "pro" %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">Pro</span>
+                                        {% endif %}
+                                    </a>
+                                    <div class="border-t border-neutral-200 my-1"></div>
+                                    <form action="/logout" method="POST" class="block">
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">Sign out</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     {% else %}
                         <!-- Login/Register buttons -->
-                        <div class="flex items-center space-x-4">
-                            <a href="/login" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+                        <div class="flex items-center space-x-3">
+                            <a href="/login" class="text-sm font-medium text-neutral-700 hover:text-neutral-900 transition">
                                 Sign in
                             </a>
-                            <a href="/register" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                            <a href="/register" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
                                 Get Started
                             </a>
                         </div>
@@ -98,30 +273,30 @@
     {% if flash_messages %}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
             {% for message in flash_messages %}
-                <div class="rounded-md p-4 mb-4 {% if message.category == 'success' %}bg-green-50 border border-green-200{% elif message.category == 'error' %}bg-red-50 border border-red-200{% elif message.category == 'warning' %}bg-yellow-50 border border-yellow-200{% else %}bg-blue-50 border border-blue-200{% endif %}" x-data="{ show: true }" x-show="show" x-cloak>
+                <div class="rounded-md p-4 mb-4 border {% if message.category == 'success' %}bg-accent-50 border-accent-300{% elif message.category == 'error' %}bg-red-50 border-red-300{% elif message.category == 'warning' %}bg-yellow-50 border-yellow-300{% else %}bg-primary-50 border-primary-300{% endif %}" x-data="{ show: true }" x-show="show" x-cloak>
                     <div class="flex">
                         <div class="flex-shrink-0">
                             {% if message.category == 'success' %}
-                                <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="h-5 w-5 text-accent-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                 </svg>
                             {% elif message.category == 'error' %}
-                                <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="h-5 w-5 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                                 </svg>
                             {% else %}
-                                <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="h-5 w-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                             {% endif %}
                         </div>
                         <div class="ml-3 flex-1">
-                            <p class="text-sm {% if message.category == 'success' %}text-green-800{% elif message.category == 'error' %}text-red-800{% elif message.category == 'warning' %}text-yellow-800{% else %}text-blue-800{% endif %}">
+                            <p class="text-sm font-medium {% if message.category == 'success' %}text-accent-800{% elif message.category == 'error' %}text-red-800{% elif message.category == 'warning' %}text-yellow-800{% else %}text-primary-800{% endif %}">
                                 {{ message.message }}
                             </p>
                         </div>
                         <div class="ml-auto pl-3">
-                            <button @click="show = false" class="inline-flex rounded-md p-1.5 hover:bg-gray-100 focus:outline-none">
+                            <button @click="show = false" class="inline-flex rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 focus:outline-none transition">
                                 <span class="sr-only">Dismiss</span>
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -140,40 +315,40 @@
     </main>
     
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-12">
+    <footer class="bg-white border-t border-neutral-200 mt-16">
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Product</h3>
-                    <ul class="mt-4 space-y-4">
-                        <li><a href="/search" class="text-base text-gray-500 hover:text-gray-900">Search Devices</a></li>
-                        <li><a href="/pricing" class="text-base text-gray-500 hover:text-gray-900">Pricing</a></li>
+                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Product</h3>
+                    <ul class="space-y-3">
+                        <li><a href="/search" class="text-sm text-neutral-600 hover:text-primary-600 transition">Device Database</a></li>
+                        <li><a href="/pricing" class="text-sm text-neutral-600 hover:text-primary-600 transition">Pricing</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Support</h3>
-                    <ul class="mt-4 space-y-4">
-                        <li><a href="#" class="text-base text-gray-500 hover:text-gray-900">Documentation</a></li>
-                        <li><a href="#" class="text-base text-gray-500 hover:text-gray-900">Contact</a></li>
+                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Support</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Documentation</a></li>
+                        <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Contact</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Company</h3>
-                    <ul class="mt-4 space-y-4">
-                        <li><a href="/about" class="text-base text-gray-500 hover:text-gray-900">About</a></li>
-                        <li><a href="#" class="text-base text-gray-500 hover:text-gray-900">Blog</a></li>
+                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Company</h3>
+                    <ul class="space-y-3">
+                        <li><a href="/about" class="text-sm text-neutral-600 hover:text-primary-600 transition">About</a></li>
+                        <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Blog</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
-                    <ul class="mt-4 space-y-4">
-                        <li><a href="#" class="text-base text-gray-500 hover:text-gray-900">Privacy</a></li>
-                        <li><a href="#" class="text-base text-gray-500 hover:text-gray-900">Terms</a></li>
+                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Legal</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Privacy</a></li>
+                        <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Terms</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="mt-8 border-t border-gray-200 pt-8">
-                <p class="text-base text-gray-400 text-center">
+            <div class="mt-10 pt-8 border-t border-neutral-200">
+                <p class="text-sm text-neutral-500 text-center">
                     &copy; 2026 EOS Tracker. All rights reserved.
                 </p>
             </div>

@@ -6,31 +6,45 @@
 <div class="bg-white py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Search Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Device Database</h1>
-            <p class="mt-2 text-gray-600">Search our comprehensive database of network equipment EOS dates</p>
+        <div class="mb-8">
+            <h1 class="text-2xl font-semibold text-neutral-900">Device Database</h1>
+            <p class="mt-1 text-sm text-neutral-600">Search our comprehensive database of network equipment EOS dates</p>
         </div>
 
         <!-- Search Form -->
-        <form action="/search" method="GET" class="mb-8">
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" name="q" value="{{ query }}" placeholder="Search by vendor or model..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+        <form action="/search" method="GET" class="mb-8 bg-neutral-50 border border-neutral-200 rounded-lg p-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-2">
+                    <label for="search-query" class="block text-xs font-medium text-neutral-700 mb-1">Search</label>
+                    <input id="search-query" type="text" name="q" value="{{ query }}" placeholder="Vendor or model..." class="block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                </div>
                 
-                <select name="vendor" class="px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">All Vendors</option>
-                    {% for vendor in vendors %}
-                    <option value="{{ vendor }}" {% if selected_vendor == vendor %}selected{% endif %}>{{ vendor }}</option>
-                    {% endfor %}
-                </select>
+                <div>
+                    <label for="vendor-select" class="block text-xs font-medium text-neutral-700 mb-1">Vendor</label>
+                    <select id="vendor-select" name="vendor" class="block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                        <option value="">All Vendors</option>
+                        {% for vendor in vendors %}
+                        <option value="{{ vendor }}" {% if selected_vendor == vendor %}selected{% endif %}>{{ vendor }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 
-                <select name="device_type" class="px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">All Types</option>
-                    {% for type in device_types %}
-                    <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type }}</option>
-                    {% endfor %}
-                </select>
-                
-                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                <div>
+                    <label for="type-select" class="block text-xs font-medium text-neutral-700 mb-1">Device Type</label>
+                    <select id="type-select" name="device_type" class="block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                        <option value="">All Types</option>
+                        {% for type in device_types %}
+                        <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mt-4 flex justify-end">
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition">
+                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
                     Search
                 </button>
             </div>
@@ -38,43 +52,41 @@
 
         <!-- Results Count -->
         <div class="mb-4">
-            <p class="text-sm text-gray-600">{{ total }} devices found</p>
+            <p class="text-sm text-neutral-600 code-font">{{ total }} devices found</p>
         </div>
 
         <!-- Results Grid -->
         {% if devices %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for device in devices %}
-            <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-                <h3 class="text-lg font-semibold text-gray-900">{{ device.vendor }} {{ device.model }}</h3>
-                <p class="mt-1 text-sm text-gray-500">{{ device.device_type }}</p>
+            <div class="card-hover bg-white border border-neutral-200 rounded-lg p-6">
+                <h3 class="text-base font-semibold text-neutral-900 code-font">{{ device.vendor }} {{ device.model }}</h3>
+                <p class="mt-1 text-sm text-neutral-500">{{ device.device_type }}</p>
                 
-                <div class="mt-4 space-y-2">
+                <div class="mt-4 pt-4 border-t border-neutral-200 space-y-2">
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">EOS Date:</span>
-                        <span class="font-medium">{{ device.eos_date }}</span>
+                        <span class="text-neutral-500">EOS Date</span>
+                        <span class="font-medium text-neutral-900 code-font">{{ device.eos_date }}</span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Days Until EOS:</span>
-                        <span class="font-medium {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-green-600{% endif %}">
-                            {{ device.days_until_eos }} days
+                        <span class="text-neutral-500">Days Until EOS</span>
+                        <span class="font-medium code-font {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-accent-600{% endif %}">
+                            {{ device.days_until_eos }}
                         </span>
                     </div>
                 </div>
                 
-                <div class="mt-4">
+                <div class="mt-4 flex items-center justify-between">
                     {% if device.status == "active" %}
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-accent-50 text-accent-700 border border-accent-200">Active</span>
                     {% elif device.status == "approaching" %}
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Approaching EOS</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">Approaching EOS</span>
                     {% else %}
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">End of Support</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">End of Support</span>
                     {% endif %}
-                </div>
-                
-                <div class="mt-4">
-                    <a href="/device/{{ device.slug }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                        View Details →
+                    
+                    <a href="/device/{{ device.slug }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium transition">
+                        Details →
                     </a>
                 </div>
             </div>
@@ -84,27 +96,27 @@
         <!-- Pagination -->
         {% if pages > 1 %}
         <div class="mt-8 flex justify-center">
-            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            <nav class="inline-flex -space-x-px rounded-md shadow-sm">
                 {% if page > 1 %}
-                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page - 1 }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page - 1 }}" class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition">
                     Previous
                 </a>
                 {% endif %}
                 
                 {% for p in range(1, pages + 1) %}
                     {% if p == page %}
-                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                    <span class="relative inline-flex items-center px-4 py-2 border border-neutral-300 bg-primary-50 text-sm font-medium text-primary-700">
                         {{ p }}
                     </span>
                     {% elif p <= 3 or p > pages - 3 or (p >= page - 1 and p <= page + 1) %}
-                    <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ p }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ p }}" class="relative inline-flex items-center px-4 py-2 border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition">
                         {{ p }}
                     </a>
                     {% endif %}
                 {% endfor %}
                 
                 {% if page < pages %}
-                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page + 1 }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page + 1 }}" class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition">
                     Next
                 </a>
                 {% endif %}
@@ -113,9 +125,12 @@
         {% endif %}
 
         {% else %}
-        <div class="text-center py-12">
-            <p class="text-gray-500">No devices found matching your search criteria.</p>
-            <a href="/search" class="mt-4 inline-block text-indigo-600 hover:text-indigo-900">
+        <div class="text-center py-16 bg-neutral-50 border border-neutral-200 rounded-lg">
+            <svg class="mx-auto h-12 w-12 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <p class="mt-4 text-neutral-600">No devices found matching your search criteria.</p>
+            <a href="/search" class="mt-4 inline-block text-primary-600 hover:text-primary-700 font-medium transition">
                 Clear filters
             </a>
         </div>

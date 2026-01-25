@@ -16,8 +16,7 @@ from database.models import Base
 
 # Database URL from environment variable
 DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@db:5432/eos_tracker"
+    "DATABASE_URL"
 )
 
 # Create engine with connection pooling
@@ -131,7 +130,6 @@ def check_connection() -> Dict[str, Any]:
         # Try to execute a simple query
         db.execute(text("SELECT 1"))
         db.close()
-        
         return {
             "success": True,
             "data": {

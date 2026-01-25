@@ -156,6 +156,27 @@ def about_page(
         {"request": request, "current_user": current_user}
     )
 
+@router.get("/terms", response_class=HTMLResponse)
+def terms_page(
+    request: Request,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """About page"""
+    return templates.TemplateResponse(
+        "terms.html",
+        {"request": request, "current_user": current_user}
+    )
+
+@router.get("/privacy", response_class=HTMLResponse)
+def privacy_page(
+    request: Request,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """About page"""
+    return templates.TemplateResponse(
+        "privacy.html",
+        {"request": request, "current_user": current_user}
+    )
 
 @router.get("/pricing", response_class=HTMLResponse)
 def pricing_page(

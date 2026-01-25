@@ -154,6 +154,7 @@ def register_user(
    
     # Register user
     result = register(email, password, full_name, db)
+    print(result)
     if not result["success"]:
         set_flash_message(request, result["error"], "error")
         return RedirectResponse(url="/register", status_code=303)

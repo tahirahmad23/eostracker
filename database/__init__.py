@@ -22,7 +22,8 @@ from database.connection import (
     drop_all_tables,
     check_connection,
     engine,
-    SessionLocal
+    SessionLocal,
+    DATABASE_URL
 )
 from database.seed_data import seed_devices
 
@@ -48,4 +49,5 @@ __all__ = [
     "SessionLocal",
     # Seed
     "seed_devices",
+    "DATABASE_URL"
 ]

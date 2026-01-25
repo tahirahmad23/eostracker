@@ -1,6 +1,64 @@
-/* Tailwind CSS is loaded from CDN in templates */
-/* This file can be used for custom CSS overrides */
+/*
+ * Custom CSS Enhancements for EOS Tracker
+ * This file contains utility classes and custom styling
+ * Tailwind CSS is loaded from CDN in base.html
+ */
 
-.status-active { color: #10b981; }
-.status-approaching { color: #f59e0b; }
-.status-eos { color: #ef4444; }
+/* Status-based text colors */
+.status-active { 
+    color: #009b69; 
+}
+
+.status-approaching { 
+    color: #f59e0b; 
+}
+
+.status-eos { 
+    color: #dc2626; 
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Code font utility */
+.code-font {
+    font-family: 'IBM Plex Mono', Consolas, 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Custom focus styles for accessibility */
+*:focus-visible {
+    outline: 2px solid #00699b;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        background: white;
+    }
+    
+    .data-table {
+        page-break-inside: avoid;
+    }
+}
+
+/* Loading state utilities */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Utility for truncating text with ellipsis */
+.truncate-2-lines {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

@@ -3,109 +3,114 @@
 {% block title %}My Devices - EOS Tracker{% endblock %}
 
 {% block content %}
-<div class="py-10">
-    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold leading-tight text-gray-900">My Tracked Devices</h1>
-            <p class="mt-2 text-sm text-gray-600">
-                {% if current_user.tier == "free" %}
-                Free tier: {{ tracked_devices|length }} / 3 devices
+<div class="py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-semibold text-neutral-900">My Tracked Devices</h1>
+                <p class="mt-1 text-sm text-neutral-600 code-font">
+                    {% if current_user.tier == "free" %}
+                    Free tier: {{ tracked_devices|length }} / 3 devices
+                    {% else %}
+                    Pro tier: {{ tracked_devices|length }} devices
+                    {% endif %}
+                </p>
+            </div>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+                {% if can_add_more %}
+                <a href="/tracking/add" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
+                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Add Device
+                </a>
                 {% else %}
-                Pro tier: {{ tracked_devices|length }} devices
+                <span class="inline-flex items-center px-4 py-2 border border-neutral-300 shadow-sm text-sm font-medium rounded-md text-neutral-400 bg-neutral-100 cursor-not-allowed">
+                    Limit Reached
+                </span>
                 {% endif %}
-            </p>
-        </div>
-        <div class="flex space-x-3">
-            {% if can_add_more %}
-            <a href="/tracking/add" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                Add Device
-            </a>
-            {% else %}
-            <span class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
-                Limit Reached
-            </span>
-            {% endif %}
-            <a href="/api/tracking/export" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Export CSV
-            </a>
-        </div>
-    </header>
-    
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <a href="/api/tracking/export" class="inline-flex items-center px-4 py-2 border border-neutral-300 shadow-sm text-sm font-medium rounded-md text-neutral-700 bg-white hover:bg-neutral-50 transition">
+                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export CSV
+                </a>
+            </div>
+        </header>
+        
         {% if tracked_devices %}
-        <div class="mt-8 flex flex-col">
-            <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-300">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Device</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">EOS Date</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Days Until EOS</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                                    <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                        <span class="sr-only">Actions</span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white">
-                                {% for device in tracked_devices %}
-                                <tr>
-                                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                                        <div class="font-medium text-gray-900">
-                                            {{ device.custom_name or (device.device.vendor + " " + device.device.model) }}
-                                        </div>
-                                        {% if device.custom_name %}
-                                        <div class="text-gray-500">{{ device.device.vendor }} {{ device.device.model }}</div>
-                                        {% endif %}
-                                        {% if device.notes %}
-                                        <div class="text-gray-400 text-xs mt-1">{{ device.notes }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                        {{ device.device.device_type }}
-                                    </td>
-                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                        {{ device.device.eos_date }}
-                                    </td>
-                                    <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                        <span class="font-medium {% if device.device.days_until_eos < 0 %}text-red-600{% elif device.device.days_until_eos < 90 %}text-yellow-600{% else %}text-green-600{% endif %}">
-                                            {{ device.device.days_until_eos }} days
-                                        </span>
-                                    </td>
-                                    <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                        {% if device.device.status == "active" %}
-                                        <span class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">Active</span>
-                                        {% elif device.device.status == "approaching" %}
-                                        <span class="inline-flex rounded-full bg-yellow-100 px-2 text-xs font-semibold leading-5 text-yellow-800">Approaching</span>
-                                        {% else %}
-                                        <span class="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">EOS</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                        <form action="/tracking/{{ device.id }}/remove" method="POST" onsubmit="return confirm('Are you sure you want to remove this device?');" class="inline">
-                                            <button type="submit" class="text-red-600 hover:text-red-900">Remove</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <div class="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-neutral-200 data-table">
+                    <thead class="bg-neutral-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Device</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">EOS Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Days Until EOS</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="relative px-6 py-3">
+                                <span class="sr-only">Actions</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-neutral-200">
+                        {% for device in tracked_devices %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-neutral-900 code-font">
+                                    {{ device.custom_name or (device.device.vendor + " " + device.device.model) }}
+                                </div>
+                                {% if device.custom_name %}
+                                <div class="text-xs text-neutral-500 code-font">{{ device.device.vendor }} {{ device.device.model }}</div>
+                                {% endif %}
+                                {% if device.notes %}
+                                <div class="text-xs text-neutral-400 mt-1">{{ device.notes }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                                {{ device.device.device_type }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900 code-font">
+                                {{ device.device.eos_date }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm font-medium code-font {% if device.device.days_until_eos < 0 %}text-red-600{% elif device.device.days_until_eos < 90 %}text-yellow-600{% else %}text-accent-600{% endif %}">
+                                    {{ device.device.days_until_eos }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if device.device.status == "active" %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-accent-50 text-accent-700 border border-accent-200">Active</span>
+                                {% elif device.device.status == "approaching" %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">Approaching</span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">EOS</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <form action="/tracking/{{ device.id }}/remove" method="POST" onsubmit="return confirm('Are you sure you want to remove this device?');" class="inline">
+                                    <button type="submit" class="text-red-600 hover:text-red-700 transition">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
         {% else %}
-        <div class="mt-8 text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <div class="text-center py-16 bg-white border border-neutral-200 rounded-lg">
+            <svg class="mx-auto h-16 w-16 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3" />
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No devices tracked</h3>
-            <p class="mt-1 text-sm text-gray-500">Get started by adding your first device.</p>
+            <h3 class="mt-4 text-base font-medium text-neutral-900">No devices tracked</h3>
+            <p class="mt-2 text-sm text-neutral-600">Get started by adding your first device.</p>
             <div class="mt-6">
-                <a href="/tracking/add" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                <a href="/tracking/add" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
+                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
                     Add Device
                 </a>
             </div>
@@ -113,21 +118,21 @@
         {% endif %}
         
         {% if not can_add_more and current_user.tier == "free" %}
-        <div class="mt-8 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+        <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div class="flex">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    <svg class="h-5 w-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm text-yellow-700">
-                        You've reached your device tracking limit. <a href="/subscription" class="font-medium underline text-yellow-700 hover:text-yellow-600">Upgrade to Pro</a> for unlimited device tracking.
+                    <p class="text-sm font-medium text-yellow-800">
+                        You've reached your device tracking limit. <a href="/subscription" class="underline hover:text-yellow-900 transition">Upgrade to Pro</a> for unlimited device tracking.
                     </p>
                 </div>
             </div>
         </div>
         {% endif %}
-    </main>
+    </div>
 </div>
 {% endblock %}

@@ -12,32 +12,32 @@
 
 {% block content %}
 <div class="bg-white py-12">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Breadcrumbs -->
         <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
-            <a href="/" class="text-gray-500 hover:text-gray-700">Home</a>
-            <span class="mx-2 text-gray-400">/</span>
-            <a href="/search" class="text-gray-500 hover:text-gray-700">Devices</a>
-            <span class="mx-2 text-gray-400">/</span>
-            <span class="text-gray-900">{{ device.vendor }} {{ device.model }}</span>
+            <a href="/" class="text-neutral-600 hover:text-primary-600 transition">Home</a>
+            <span class="mx-2 text-neutral-400">/</span>
+            <a href="/search" class="text-neutral-600 hover:text-primary-600 transition">Devices</a>
+            <span class="mx-2 text-neutral-400">/</span>
+            <span class="text-neutral-900 font-medium">{{ device.vendor }} {{ device.model }}</span>
         </nav>
 
         <!-- Device Header -->
-        <div class="border-b border-gray-200 pb-6 mb-6">
-            <h1 class="text-4xl font-bold text-gray-900">{{ device.vendor }} {{ device.model }}</h1>
-            <p class="mt-2 text-lg text-gray-600">{{ device.device_type }}</p>
+        <div class="border-b border-neutral-200 pb-8 mb-8">
+            <h1 class="text-3xl font-bold text-neutral-900 code-font">{{ device.vendor }} {{ device.model }}</h1>
+            <p class="mt-2 text-base text-neutral-600">{{ device.device_type }}</p>
             
             <div class="mt-4">
                 {% if device.status == "active" %}
-                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                <span class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded bg-accent-50 text-accent-700 border border-accent-200">
                     Active Support
                 </span>
                 {% elif device.status == "approaching" %}
-                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                <span class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded bg-yellow-50 text-yellow-700 border border-yellow-200">
                     Approaching End of Support
                 </span>
                 {% else %}
-                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                <span class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded bg-red-50 text-red-700 border border-red-200">
                     End of Support Reached
                 </span>
                 {% endif %}
@@ -45,44 +45,44 @@
         </div>
 
         <!-- Device Details -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div>
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Support Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
+                <h2 class="text-base font-semibold text-neutral-900 mb-4">Support Information</h2>
                 <dl class="space-y-4">
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Vendor</dt>
-                        <dd class="mt-1 text-lg text-gray-900">{{ device.vendor }}</dd>
+                        <dt class="text-sm font-medium text-neutral-500">Vendor</dt>
+                        <dd class="mt-1 text-base text-neutral-900 code-font">{{ device.vendor }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Model</dt>
-                        <dd class="mt-1 text-lg text-gray-900">{{ device.model }}</dd>
+                        <dt class="text-sm font-medium text-neutral-500">Model</dt>
+                        <dd class="mt-1 text-base text-neutral-900 code-font">{{ device.model }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Device Type</dt>
-                        <dd class="mt-1 text-lg text-gray-900">{{ device.device_type }}</dd>
+                        <dt class="text-sm font-medium text-neutral-500">Device Type</dt>
+                        <dd class="mt-1 text-base text-neutral-900">{{ device.device_type }}</dd>
                     </div>
                 </dl>
             </div>
             
-            <div>
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Timeline</h2>
+            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
+                <h2 class="text-base font-semibold text-neutral-900 mb-4">Timeline</h2>
                 <dl class="space-y-4">
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">End of Support Date</dt>
-                        <dd class="mt-1 text-lg font-semibold {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-green-600{% endif %}">
+                        <dt class="text-sm font-medium text-neutral-500">End of Support Date</dt>
+                        <dd class="mt-1 text-lg font-semibold code-font {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-accent-600{% endif %}">
                             {{ device.eos_date }}
                         </dd>
                     </div>
                     {% if device.eol_date %}
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">End of Life Date</dt>
-                        <dd class="mt-1 text-lg text-gray-900">{{ device.eol_date }}</dd>
+                        <dt class="text-sm font-medium text-neutral-500">End of Life Date</dt>
+                        <dd class="mt-1 text-base text-neutral-900 code-font">{{ device.eol_date }}</dd>
                     </div>
                     {% endif %}
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Days Until EOS</dt>
-                        <dd class="mt-1 text-2xl font-bold {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-green-600{% endif %}">
-                            {{ device.days_until_eos }} days
+                        <dt class="text-sm font-medium text-neutral-500">Days Until EOS</dt>
+                        <dd class="mt-1 text-3xl font-bold code-font {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-accent-600{% endif %}">
+                            {{ device.days_until_eos }}
                         </dd>
                     </div>
                 </dl>
@@ -92,21 +92,21 @@
         <!-- Description -->
         {% if device.description %}
         <div class="mb-8">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">Description</h2>
-            <p class="text-gray-700">{{ device.description }}</p>
+            <h2 class="text-base font-semibold text-neutral-900 mb-3">Description</h2>
+            <p class="text-neutral-700 leading-relaxed">{{ device.description }}</p>
         </div>
         {% endif %}
 
         <!-- CTA -->
-        <div class="bg-indigo-50 rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">Track This Device</h2>
-            <p class="text-gray-600 mb-4">Add this device to your tracking list to receive automated email alerts before the EOS date.</p>
+        <div class="bg-primary-50 border border-primary-200 rounded-lg p-6 mb-12">
+            <h2 class="text-lg font-semibold text-neutral-900 mb-2">Track This Device</h2>
+            <p class="text-neutral-700 mb-4">Add this device to your tracking list to receive automated email alerts before the EOS date.</p>
             {% if current_user %}
-            <a href="/tracking/add?device_id={{ device.id }}" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+            <a href="/tracking/add?device_id={{ device.id }}" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
                 Add to Tracking
             </a>
             {% else %}
-            <a href="/register" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+            <a href="/register" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
                 Sign Up to Track
             </a>
             {% endif %}
@@ -115,14 +115,14 @@
         <!-- Related Devices -->
         {% if related_devices %}
         <div>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-6">Related {{ device.vendor }} Devices</h2>
+            <h2 class="text-xl font-semibold text-neutral-900 mb-6">Related {{ device.vendor }} Devices</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {% for related in related_devices %}
-                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <h3 class="font-semibold text-gray-900">{{ related.model }}</h3>
-                    <p class="text-sm text-gray-500 mt-1">{{ related.device_type }}</p>
-                    <p class="text-sm text-gray-600 mt-2">EOS: {{ related.eos_date }}</p>
-                    <a href="/device/{{ related.slug }}" class="mt-3 inline-block text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                <div class="card-hover bg-white border border-neutral-200 rounded-lg p-5">
+                    <h3 class="font-semibold text-neutral-900 code-font">{{ related.model }}</h3>
+                    <p class="text-sm text-neutral-500 mt-1">{{ related.device_type }}</p>
+                    <p class="text-sm text-neutral-700 mt-2 code-font">EOS: {{ related.eos_date }}</p>
+                    <a href="/device/{{ related.slug }}" class="mt-3 inline-block text-primary-600 hover:text-primary-700 text-sm font-medium transition">
                         View Details →
                     </a>
                 </div>
