@@ -10,12 +10,12 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from database import get_db,User
-from auth import get_current_user
+from auth import get_current_user_optional
 from tracking import (
     get_user_tracked_devices,
     add_tracked_device,
     remove_tracked_device,
-    can_add_device
+    can_add_device,
 )
 from devices import search_devices
 from web.routes.auth import set_flash_message, get_flash_messages
@@ -27,12 +27,15 @@ templates = Jinja2Templates(directory="web/templates")
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     User dashboard with statistics and quick actions
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Get tracked devices
     tracked_result = get_user_tracked_devices(current_user.id, db)
     tracked_devices = tracked_result["data"] if tracked_result["success"] else []
@@ -66,12 +69,15 @@ def dashboard(
 @router.get("/tracking", response_class=HTMLResponse)
 def tracking_page(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Tracked devices list with table view
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Get tracked devices
     tracked_result = get_user_tracked_devices(current_user.id, db)
     tracked_devices = tracked_result["data"] if tracked_result["success"] else []
@@ -99,12 +105,14 @@ def tracking_page(
 @router.get("/tracking/add", response_class=HTMLResponse)
 def add_device_page(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Add device to tracking page
     """
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Check if user can add devices
     can_add_result = can_add_device(current_user.id, db)
     if not can_add_result["success"] or not can_add_result["data"]:
@@ -136,12 +144,15 @@ def add_device_to_tracking(
     device_id: int = Form(...),
     custom_name: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Process add device form
     """
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
+
     # Add device to tracking
     result = add_tracked_device(current_user.id, device_id, custom_name, notes, db)
     
@@ -157,12 +168,14 @@ def add_device_to_tracking(
 def remove_device_from_tracking(
     request: Request,
     tracked_device_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Remove device from tracking
     """
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Remove device
     result = remove_tracked_device(current_user.id, tracked_device_id, db)
     
@@ -177,11 +190,14 @@ def remove_device_from_tracking(
 @router.get("/profile", response_class=HTMLResponse)
 def profile_page(
     request: Request,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     """
     User profile page
     """
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
+    
     return templates.TemplateResponse(
         "profile.html",
         {

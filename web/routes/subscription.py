@@ -11,7 +11,7 @@ from typing import Optional
 
 from database import get_db,User
 
-from auth import get_current_user
+from auth import get_current_user_optional
 from subscription import (
     create_checkout_session,
     get_subscription,
@@ -27,13 +27,16 @@ templates = Jinja2Templates(directory="web/templates")
 @router.get("/subscription", response_class=HTMLResponse)
 def subscription_page(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Subscription management page
     Shows current tier, subscription status, and upgrade/cancel options
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Get subscription details
     sub_result = get_subscription(current_user.id, db)
     subscription = sub_result["data"] if sub_result["success"] else None
@@ -52,13 +55,16 @@ def subscription_page(
 @router.post("/subscription/checkout")
 def create_checkout(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Initialize Paystack checkout session
     Redirects user to Paystack payment page
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Create checkout session
     success_url = str(request.url_for("subscription_success"))
     cancel_url = str(request.url_for("subscription_page"))
@@ -77,12 +83,15 @@ def create_checkout(
 def subscription_success(
     request: Request,
     reference: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Subscription success callback from Paystack
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     set_flash_message(
         request,
         "Thank you for upgrading to Pro! Your subscription is now active.",
@@ -95,13 +104,16 @@ def subscription_success(
 @router.post("/subscription/cancel")
 def cancel_user_subscription(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
     Cancel user's subscription
     Downgrades to free tier at end of billing period
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     result = cancel_subscription(current_user.id, db)
     
     if not result["success"]:
@@ -131,6 +143,7 @@ async def paystack_webhook(
     - subscription.disable
     - charge.success
     """
+
     # Get raw body for signature validation
     body = await request.body()
     
@@ -167,11 +180,12 @@ async def paystack_webhook(
 @router.get("/pricing", response_class=HTMLResponse)
 def pricing_page_redirect(
     request: Request,
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Pricing page (can be accessed with or without auth)
     """
+
     return templates.TemplateResponse(
         "pricing.html",
         {

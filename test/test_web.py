@@ -242,7 +242,6 @@ def test_register_new_user():
         },
         follow_redirects=False
     )
-    
     assert response.status_code == 303
     assert response.headers["location"] == "/dashboard"
     

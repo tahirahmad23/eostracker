@@ -10,7 +10,7 @@ from typing import Optional
 
  
 from database import User, get_db
-from auth import get_current_user
+from auth import get_current_user_optional
 from devices import search_devices, get_device
 from tracking import (
     get_user_tracked_devices,
@@ -86,7 +86,7 @@ def api_get_device(
 
 @router.get("/tracking")
 def api_list_tracked_devices(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -94,6 +94,9 @@ def api_list_tracked_devices(
     
     Returns array of tracked devices with details
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     result = get_user_tracked_devices(current_user.id, db)
     
     if result["success"]:
@@ -111,7 +114,7 @@ def api_list_tracked_devices(
 @router.post("/tracking")
 def api_add_tracked_device(
     payload: TrackDeviceRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -126,6 +129,10 @@ def api_add_tracked_device(
     
     Returns created TrackedDeviceInfo
     """
+
+    
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     result = add_tracked_device(
         current_user.id, 
         payload.device_id, 
@@ -148,7 +155,7 @@ def api_add_tracked_device(
 @router.delete("/tracking/{tracked_device_id}")
 def api_remove_tracked_device(
     tracked_device_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -156,6 +163,9 @@ def api_remove_tracked_device(
     
     Returns success status
     """
+    
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     result = remove_tracked_device(current_user.id, tracked_device_id, db)
     
     if result["success"]:
@@ -174,7 +184,7 @@ def api_remove_tracked_device(
 async def api_import_csv(
     request : Request,
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -184,6 +194,10 @@ async def api_import_csv(
     
     Returns import statistics and errors
     """
+
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Read CSV file
     csv_content = await file.read()
     
@@ -209,7 +223,7 @@ async def api_import_csv(
 @router.get("/tracking/export")
 def api_export_csv(
     request : Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -217,6 +231,9 @@ def api_export_csv(
     
     Returns CSV file for download
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     result = export_to_csv(current_user.id, db)
     if result["success"]:
         return Response(
@@ -240,7 +257,7 @@ def api_export_csv(
 @router.post("/reports/generate")
 def api_generate_report(
     include_charts: bool = False,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -253,6 +270,9 @@ def api_generate_report(
     
     Returns PDF file for download
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     # Override include_charts for free tier
     if current_user.tier == "free":
         include_charts = False
@@ -276,7 +296,7 @@ def api_generate_report(
 
 @router.get("/reports/export-csv")
 def api_export_report_csv(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -284,6 +304,9 @@ def api_export_report_csv(
     
     Returns CSV file for download
     """
+
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
     result = generate_csv_export(current_user.id, db)
     
     if result["success"]:

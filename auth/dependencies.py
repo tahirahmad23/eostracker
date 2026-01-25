@@ -2,7 +2,7 @@
 FastAPI dependencies for authentication and authorization.
 
 This module provides dependency injection functions for protecting routes:
-- get_current_user: Extracts and validates JWT token from Authorization header
+- get_current_user: Extracts and validates JWT token from Authorization header or Cookie
 - get_current_active_user: Ensures user is active
 
 Use these in FastAPI route handlers to require authentication.
@@ -10,7 +10,7 @@ Use these in FastAPI route handlers to require authentication.
 
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status,Cookie
+from fastapi import Depends, HTTPException, status, Cookie
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
@@ -24,38 +24,40 @@ security = HTTPBearer()
 security_optional = HTTPBearer(auto_error=False)
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
+    access_token: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ) -> User:
     """
-    Extract and validate user from JWT token in Authorization header.
+    Extract and validate user from JWT token in Authorization header or Cookie.
     
     This dependency function:
-    1. Extracts Bearer token from Authorization header
+    1. Extracts Bearer token from Authorization header OR Cookie
     2. Validates the JWT token
     3. Retrieves the user from database
     4. Raises HTTPException if authentication fails
     
-    Use in FastAPI routes to require authentication:
-    
     Args:
-        credentials: HTTP Bearer credentials (auto-extracted by FastAPI)
-        db: Database session (auto-injected)
+        credentials: HTTP Bearer credentials (auto-extracted from header)
+        access_token: Token from cookie (auto-extracted)
+        db: Database session
     
     Returns:
         Authenticated User object
-    
-    Raises:
-        HTTPException: 401 if token is invalid or user not found
-    
-    Example:
-        @app.get("/protected")
-        async def protected_route(
-            current_user: User = Depends(get_current_user)
-        ):
-            return {"message": f"Hello {current_user.full_name}"}
     """
-    token = credentials.credentials
+    # Fix: Check Header first, then check Cookie
+    token = None
+    if credentials:
+        token = credentials.credentials
+    elif access_token:
+        token = access_token
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     # Validate token and get user ID
     result = validate_token(token, db)
@@ -82,7 +84,7 @@ async def get_current_user(
     return user
 
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional), # Use loose scheme
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
     token: Optional[str] = Cookie(None, alias="access_token"),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
@@ -114,25 +116,6 @@ async def get_current_active_user(
 ) -> User:
     """
     Ensure the current user is active.
-    
-    This is a convenience dependency that chains get_current_user
-    and adds an additional check for active status.
-    
-    Args:
-        current_user: User from get_current_user dependency
-    
-    Returns:
-        Active User object
-    
-    Raises:
-        HTTPException: 403 if user account is disabled
-    
-    Example:
-        @app.get("/active-only")
-        async def active_route(
-            user: User = Depends(get_current_active_user)
-        ):
-            return {"message": "Active user only"}
     """
     if not current_user.is_active:
         raise HTTPException(
@@ -148,24 +131,6 @@ def require_pro_tier(
 ) -> User:
     """
     Require user to have Pro tier subscription.
-    
-    Use this dependency for routes that require Pro features.
-    
-    Args:
-        current_user: User from get_current_active_user dependency
-    
-    Returns:
-        Pro tier User object
-    
-    Raises:
-        HTTPException: 403 if user is not Pro tier
-    
-    Example:
-        @app.post("/pro-feature")
-        async def pro_only(
-            user: User = Depends(require_pro_tier)
-        ):
-            return {"message": "Pro feature accessed"}
     """
     from database.models import UserTier
     

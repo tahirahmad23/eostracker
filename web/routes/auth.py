@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from database import get_db, User
-from auth import register, login,get_current_user_optional
+from auth import register, login, get_current_user_optional
 from alerts import send_welcome_email
 
 
@@ -97,7 +97,8 @@ def login_user(
         value=access_token,
         httponly=True,
         max_age=7 * 24 * 60 * 60 if remember_me else 30 * 60,  # 7 days or 30 min
-        samesite="lax"
+        samesite="lax",
+        path="/" # Fix: Ensure cookie is available for all routes
     )
     
     set_flash_message(request, f"Welcome back, {result['data']['user']['full_name']}!", "success")
@@ -154,7 +155,6 @@ def register_user(
    
     # Register user
     result = register(email, password, full_name, db)
-    print(result)
     if not result["success"]:
         set_flash_message(request, result["error"], "error")
         return RedirectResponse(url="/register", status_code=303)
@@ -177,7 +177,8 @@ def register_user(
         value=access_token,
         httponly=True,
         max_age=30 * 60,  # 30 minutes
-        samesite="lax"
+        samesite="lax",
+        path="/" # Fix: Ensure cookie is available for all routes
     )
     
     set_flash_message(request, f"Welcome to EOS Tracker, {full_name}! Your account has been created.", "success")
@@ -191,7 +192,7 @@ def logout_user(request: Request):
     Logout user by clearing session and cookie
     """
     redirect = RedirectResponse(url="/", status_code=303)
-    redirect.delete_cookie("access_token")
+    redirect.delete_cookie("access_token", path="/") # Fix: Ensure deletion matches the path
     
     set_flash_message(request, "You have been logged out successfully", "success")
     

@@ -130,16 +130,6 @@ def process_webhook(
 def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
     """
     Handle subscription.create event.
-    
-    Upgrades user to Pro tier and creates Subscription record.
-    Updates are atomic within a database transaction.
-    
-    Args:
-        payload: Webhook event payload
-        db: Database session
-    
-    Returns:
-        Result indicating success or error
     """
     try:
         # Extract subscription data from payload
@@ -161,14 +151,25 @@ def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
                 "error": f"User not found with email: {email}"
             }
         
-        # Extract subscription details
-        paystack_subscription_code= data.get("paystack_subscription_code")
-        paystack_customer_code = customer.get("paystack_customer_code")
+        # --- FIX STARTS HERE ---
+        # Map Paystack JSON keys to your Database variables
+        paystack_subscription_code = data.get("subscription_code")  # Changed from paystack_subscription_code
+        paystack_customer_code = customer.get("customer_code")      # Changed from paystack_customer_code
         plan_code = data.get("plan", {}).get("plan_code")
+        # --- FIX ENDS HERE ---
         
+        # Debugging: Print to console to verify Ngrok is hitting this
+        print(f"Webhook Processing: User {user.email} -> PRO. Code: {paystack_subscription_code}")
+
+        if not paystack_subscription_code:
+             return {
+                "success": False,
+                "error": "Missing subscription_code in Paystack payload"
+            }
+
         # Calculate billing period
         current_period_start = datetime.utcnow()
-        current_period_end = current_period_start + timedelta(days=30)  # Monthly subscription
+        current_period_end = current_period_start + timedelta(days=30)
         
         # Check if subscription already exists (idempotency)
         existing = db.query(Subscription).filter(
@@ -176,11 +177,7 @@ def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
         ).first()
         
         if existing:
-            # Webhook already processed
-            return {
-                "success": True,
-                "data": None
-            }
+            return {"success": True, "data": None}
         
         # Create subscription record
         subscription = Subscription(
@@ -201,23 +198,15 @@ def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
         db.add(subscription)
         db.commit()
         
-        return {
-            "success": True,
-            "data": None
-        }
+        return {"success": True, "data": None}
     
     except SQLAlchemyError as e:
         db.rollback()
-        return {
-            "success": False,
-            "error": f"Database error: {str(e)}"
-        }
+        print(f"DB Error: {str(e)}") # Helpful for Ngrok logs
+        return {"success": False, "error": f"Database error: {str(e)}"}
     except Exception as e:
         db.rollback()
-        return {
-            "success": False,
-            "error": f"Error processing subscription.create: {str(e)}"
-        }
+        return {"success": False, "error": f"Error processing subscription.create: {str(e)}"}
 
 
 def _handle_subscription_disable(payload: Dict, db: Session) -> Dict:
@@ -237,7 +226,7 @@ def _handle_subscription_disable(payload: Dict, db: Session) -> Dict:
     try:
         # Extract subscription data from payload
         data = payload.get("data", {})
-        paystack_subscription_code = data.get("paystack_subscription_code")
+        paystack_subscription_code = data.get("subscription_code")
         
         if not paystack_subscription_code:
             return {
