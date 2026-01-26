@@ -1,23 +1,24 @@
 """
-Subscription Service Module
+Subscription Service Module (Lemon Squeezy)
 
 Handles subscription lifecycle management including:
-- Creating Paystack checkout sessions
+- Creating Lemon Squeezy checkout sessions
 - Retrieving subscription status
 - Canceling subscriptions
 - Managing tier upgrades/downgrades
 
 All functions return Result<T> for consistent error handling.
+All transactions processed in USD globally.
 """
 
-from typing import Dict, Optional
+from typing import Dict
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from database.models import User, Subscription
 from database import UserTier
-from subscription.paystack import PaystackClient
+from subscription.lemonsqueezy import LemonSqueezyClient
 
 
 def create_checkout_session(
@@ -27,11 +28,14 @@ def create_checkout_session(
     db: Session
 ) -> Dict:
     """
-    Initialize Paystack subscription checkout session.
+    Initialize Lemon Squeezy subscription checkout session.
     
-    Creates a Paystack subscription checkout session for upgrading
-    a user to Pro tier ($49/month). Returns authorization URL for
-    redirect to Paystack payment page.
+    Creates a Lemon Squeezy checkout (recurring billing in USD) for upgrading
+    a user to Pro tier ($49/month). Returns checkout URL for redirect to 
+    Lemon Squeezy payment page.
+    
+    All customers worldwide are charged in USD. Lemon Squeezy handles
+    currency display and conversion at checkout.
     
     Args:
         user_id: ID of user creating subscription
@@ -41,10 +45,10 @@ def create_checkout_session(
     
     Returns:
         Result containing:
-        - authorization_url: Paystack checkout URL
-        - reference: Transaction reference for tracking
+        - checkout_url: Lemon Squeezy checkout URL
+        - checkout_id: Checkout ID for tracking
         
-        Or error if user not found or Paystack API fails
+        Or error if user not found or API fails
     
     Example:
         result = create_checkout_session(
@@ -54,7 +58,7 @@ def create_checkout_session(
             db=db
         )
         if result["success"]:
-            redirect_to(result["data"]["authorization_url"])
+            redirect_to(result["data"]["checkout_url"])
     """
     try:
         # Validate user exists
@@ -77,14 +81,15 @@ def create_checkout_session(
                 "error": "User already has an active subscription"
             }
         
-        # Initialize Paystack client
-        paystack = PaystackClient()
+        # Initialize Lemon Squeezy client
+        lemonsqueezy = LemonSqueezyClient()
         
-        # Create subscription on Paystack
-        checkout_result = paystack.create_subscription(
+        # Create checkout on Lemon Squeezy
+        checkout_result = lemonsqueezy.create_subscription(
             email=user.email,
             customer_name=user.full_name,
-            callback_url=success_url
+            callback_url=success_url,
+            user_id=user.id
         )
         
         if not checkout_result["success"]:
@@ -93,8 +98,8 @@ def create_checkout_session(
         return {
             "success": True,
             "data": {
-                "authorization_url": checkout_result["data"]["authorization_url"],
-                "reference": checkout_result["data"]["reference"]
+                "checkout_url": checkout_result["data"]["checkout_url"],
+                "checkout_id": checkout_result["data"]["checkout_id"]
             }
         }
     
@@ -127,10 +132,12 @@ def get_subscription(user_id: int, db: Session) -> Dict:
         
         Subscription details include:
         - id: Subscription record ID
-        - paystack_subscription_code: Paystack subscription code
-        - paystack_customer_code: Paystack customer code
-        - plan_code: Pro plan code
-        - status: "active" or "cancelled"
+        - lemonsqueezy_subscription_id: Lemon Squeezy subscription ID
+        - lemonsqueezy_customer_id: Lemon Squeezy customer ID
+        - lemonsqueezy_order_id: Original order ID
+        - lemonsqueezy_product_id: Product ID
+        - lemonsqueezy_variant_id: Variant ID
+        - status: "active", "cancelled", "expired", etc.
         - current_period_start: Billing period start date
         - current_period_end: Billing period end date
         - created_at: Subscription creation date
@@ -165,12 +172,14 @@ def get_subscription(user_id: int, db: Session) -> Dict:
             "success": True,
             "data": {
                 "id": subscription.id,
-                "paystack_subscription_code": subscription.paystack_subscription_code,
-                "paystack_customer_code": subscription.paystack_customer_code,
-                "plan_code": subscription.plan_code,
+                "lemonsqueezy_subscription_id": subscription.lemonsqueezy_subscription_id,
+                "lemonsqueezy_customer_id": subscription.lemonsqueezy_customer_id,
+                "lemonsqueezy_order_id": subscription.lemonsqueezy_order_id,
+                "lemonsqueezy_product_id": subscription.lemonsqueezy_product_id,
+                "lemonsqueezy_variant_id": subscription.lemonsqueezy_variant_id,
                 "status": subscription.status,
-                "current_period_start": subscription.current_period_start.isoformat(),
-                "current_period_end": subscription.current_period_end.isoformat(),
+                "current_period_start": subscription.current_period_start.isoformat() if subscription.current_period_start else None,
+                "current_period_end": subscription.current_period_end.isoformat() if subscription.current_period_end else None,
                 "created_at": subscription.created_at.isoformat(),
                 "cancelled_at": subscription.cancelled_at.isoformat() if subscription.cancelled_at else None
             }
@@ -192,9 +201,9 @@ def cancel_subscription(user_id: int, db: Session) -> Dict:
     """
     Cancel user's active subscription.
     
-    Cancels the subscription both on Paystack and in the database.
-    User will be downgraded to Free tier. Subscription remains active
-    until the end of the current billing period.
+    Cancels the subscription both on Lemon Squeezy and in the database.
+    User will be downgraded to Free tier immediately, but subscription
+    remains active until end of billing period.
     
     Args:
         user_id: ID of user canceling subscription
@@ -229,18 +238,18 @@ def cancel_subscription(user_id: int, db: Session) -> Dict:
                 "error": "No active subscription found"
             }
         
-        # Cancel on Paystack
-        paystack = PaystackClient()
-        cancel_result = paystack.cancel_subscription(
-            paystack_subscription_code=subscription.paystack_subscription_code,
-            email_token=subscription.paystack_customer_code
+        # Cancel on Lemon Squeezy first
+        lemonsqueezy = LemonSqueezyClient()
+        cancel_result = lemonsqueezy.cancel_subscription(
+            subscription_id=subscription.lemonsqueezy_subscription_id
         )
         
         if not cancel_result["success"]:
             return cancel_result
         
         # Update database
-        subscription.status = "canceled"
+        # Note: The webhook will also update this, but we do it here for immediate feedback
+        subscription.status = "cancelled"
         subscription.cancelled_at = datetime.utcnow()
         
         # Downgrade user to free tier
@@ -254,7 +263,7 @@ def cancel_subscription(user_id: int, db: Session) -> Dict:
             "success": True,
             "data": {
                 "id": subscription.id,
-                "paystack_subscription_code": subscription.paystack_subscription_code,
+                "lemonsqueezy_subscription_id": subscription.lemonsqueezy_subscription_id,
                 "status": subscription.status,
                 "cancelled_at": subscription.cancelled_at.isoformat()
             }

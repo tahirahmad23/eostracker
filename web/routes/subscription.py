@@ -1,6 +1,6 @@
 """
-Subscription Routes
-Paystack checkout, webhooks, and subscription management
+Subscription Routes (Lemon Squeezy)
+Checkout, webhooks, and subscription management
 """
 
 from fastapi import APIRouter, Request, Depends, Header
@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from database import get_db,User
+from database import get_db, User
 
 from auth import get_current_user_optional
 from subscription import (
@@ -34,9 +34,9 @@ def subscription_page(
     Subscription management page
     Shows current tier, subscription status, and upgrade/cancel options
     """
-
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
+    
     # Get subscription details
     sub_result = get_subscription(current_user.id, db)
     subscription = sub_result["data"] if sub_result["success"] else None
@@ -59,12 +59,13 @@ def create_checkout(
     db: Session = Depends(get_db)
 ):
     """
-    Initialize Paystack checkout session
-    Redirects user to Paystack payment page
+    Initialize Lemon Squeezy checkout session
+    Redirects user to Lemon Squeezy payment page
+    All transactions in USD globally
     """
-
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
+    
     # Create checkout session
     success_url = str(request.url_for("subscription_success"))
     cancel_url = str(request.url_for("subscription_page"))
@@ -75,26 +76,28 @@ def create_checkout(
         set_flash_message(request, result["error"], "error")
         return RedirectResponse(url="/subscription", status_code=303)
     
-    # Redirect to Paystack authorization URL
-    return RedirectResponse(url=result["data"]["authorization_url"], status_code=303)
+    # Redirect to Lemon Squeezy checkout URL
+    return RedirectResponse(url=result["data"]["checkout_url"], status_code=303)
 
 
 @router.get("/subscription/success", response_class=HTMLResponse)
 def subscription_success(
     request: Request,
-    reference: Optional[str] = None,
     current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
-    Subscription success callback from Paystack
+    Subscription success callback from Lemon Squeezy
+    
+    NOTE: The actual upgrade happens via webhook (subscription_created event).
+    This page just shows a success message. The webhook will upgrade the user to Pro.
     """
-
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
+    
     set_flash_message(
         request,
-        "Thank you for upgrading to Pro! Your subscription is now active.",
+        "Thank you for upgrading to Pro! Your subscription will be activated shortly.",
         "success"
     )
     
@@ -109,11 +112,11 @@ def cancel_user_subscription(
 ):
     """
     Cancel user's subscription
-    Downgrades to free tier at end of billing period
+    Downgrades to free tier immediately
     """
-
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
+    
     result = cancel_subscription(current_user.id, db)
     
     if not result["success"]:
@@ -121,55 +124,75 @@ def cancel_user_subscription(
     else:
         set_flash_message(
             request,
-            "Your subscription has been cancelled. You'll retain Pro access until the end of your billing period.",
+            "Your subscription has been cancelled successfully.",
             "success"
         )
     
     return RedirectResponse(url="/subscription", status_code=303)
 
 
-@router.post("/webhooks/paystack")
-async def paystack_webhook(
+@router.post("/webhooks/lemonsqueezy")
+async def lemonsqueezy_webhook(
     request: Request,
-    x_paystack_signature: Optional[str] = Header(None),
+    x_signature: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
     """
-    Paystack webhook handler
-    Processes subscription events (payment success, cancellation, etc.)
+    Lemon Squeezy webhook handler
+    Processes subscription events (creation, updates, payments, etc.)
     
-    Webhook events:
-    - subscription.create
-    - subscription.disable
-    - charge.success
+    Important webhook events for subscriptions:
+    - subscription_created: Sent when subscription is successfully created
+    - subscription_updated: Sent when subscription status changes
+    - subscription_payment_success: Sent when recurring payment succeeds
+    
+    NOTE: Lemon Squeezy sends the signature in the X-Signature header.
+    We validate this to ensure the webhook came from Lemon Squeezy.
     """
-
-    # Get raw body for signature validation
-    body = await request.body()
+    # Get raw body for signature validation (IMPORTANT: must be raw bytes)
+    raw_body = await request.body()
     
     # Parse JSON payload
     import json
     try:
-        payload = json.loads(body)
+        payload = json.loads(raw_body)
     except json.JSONDecodeError:
         return JSONResponse(
             status_code=400,
             content={"success": False, "error": "Invalid JSON payload"}
         )
     
-    # Get event type
-    event_type = payload.get("event")
-    if not event_type:
+    # Get event name from meta
+    meta = payload.get("meta", {})
+    event_name = meta.get("event_name")
+    
+    if not event_name:
         return JSONResponse(
             status_code=400,
-            content={"success": False, "error": "Missing event type"}
+            content={"success": False, "error": "Missing event_name in meta"}
         )
     
-    # Process webhook
-    result = process_webhook(event_type, payload, x_paystack_signature or "", db)
+    # Validate signature
+    if not x_signature:
+        return JSONResponse(
+            status_code=400,
+            content={"success": False, "error": "Missing X-Signature header"}
+        )
+    
+    # Process webhook (passes raw body for signature validation)
+    result = process_webhook(
+        event_name=event_name,
+        payload=payload,
+        raw_payload=raw_body,
+        signature=x_signature,
+        db=db
+    )
     
     if result["success"]:
-        return {"success": True, "message": "Webhook processed"}
+        return JSONResponse(
+            status_code=200,
+            content={"success": True, "message": "Webhook processed successfully"}
+        )
     else:
         return JSONResponse(
             status_code=400,
@@ -185,7 +208,6 @@ def pricing_page_redirect(
     """
     Pricing page (can be accessed with or without auth)
     """
-
     return templates.TemplateResponse(
         "pricing.html",
         {

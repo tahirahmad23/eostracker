@@ -144,18 +144,21 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
-    paystack_subscription_code = Column(String(255), unique=True, nullable=False)
-    paystack_customer_code = Column(String(255), nullable=False)
-    plan_code = Column(String(255), nullable=False)
-    status = Column(SQLEnum(SubscriptionStatus), default=SubscriptionStatus.ACTIVE, nullable=False)
-    current_period_start = Column(DateTime, nullable=False)
-    current_period_end = Column(DateTime, nullable=False)
-    cancel_at_period_end = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    cancelled_at = Column(DateTime, default=None, onupdate=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    lemonsqueezy_subscription_id = Column(String, unique=True, index=True)
+    lemonsqueezy_customer_id = Column(String, nullable=True)
+    lemonsqueezy_order_id = Column(String, nullable=True)
+    lemonsqueezy_product_id = Column(String, nullable=True)
+    lemonsqueezy_variant_id = Column(String, nullable=True)
+    status = Column(String, default="active")
+    current_period_start = Column(DateTime, nullable=True)
+    current_period_end = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    cancelled_at = Column(DateTime, nullable=True)
     
+
+    cancel_at_period_end = Column(Boolean, default=False, nullable=False)
     # Relationships
     user = relationship("User", back_populates="subscription")
     

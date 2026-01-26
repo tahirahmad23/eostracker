@@ -1,11 +1,14 @@
 """
-Subscription Module
+Subscription Module (Lemon Squeezy)
 
 Provides subscription management functionality including:
-- Paystack checkout session creation
+- Lemon Squeezy checkout session creation (USD globally)
 - Subscription status retrieval
 - Subscription cancellation
 - Webhook event processing
+
+All transactions processed in USD worldwide.
+Lemon Squeezy acts as merchant of record, handling taxes and compliance.
 
 Usage:
     from subscription import (
@@ -28,7 +31,7 @@ from subscription.webhooks import (
     validate_webhook_signature
 )
 
-from subscription.paystack import PaystackClient
+from subscription.lemonsqueezy import LemonSqueezyClient
 
 
 __all__ = [
@@ -37,5 +40,5 @@ __all__ = [
     "cancel_subscription",
     "process_webhook",
     "validate_webhook_signature",
-    "PaystackClient"
+    "LemonSqueezyClient"
 ]

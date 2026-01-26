@@ -1,10 +1,11 @@
 """
-Paystack Webhook Processing Module
+Lemon Squeezy Webhook Processing Module
 
-Handles incoming webhook events from Paystack for:
+Handles incoming webhook events from Lemon Squeezy for:
 - Subscription creation (upgrade to Pro)
-- Subscription disable (downgrade to Free)
-- Webhook signature validation (HMAC SHA-512)
+- Subscription updates (renewals, status changes)
+- Subscription cancellation/expiration (downgrade to Free)
+- Webhook signature validation (HMAC SHA-256)
 
 All webhook events update user tier atomically.
 """
@@ -14,7 +15,7 @@ import hmac
 import hashlib
 import json
 from typing import Dict
-from datetime import datetime, timedelta
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -24,14 +25,14 @@ from database import UserTier
 
 def validate_webhook_signature(payload: bytes, signature: str) -> bool:
     """
-    Validate Paystack webhook signature using HMAC SHA-512.
+    Validate Lemon Squeezy webhook signature using HMAC SHA-256.
     
-    Verifies that the webhook request came from Paystack and has not
-    been tampered with. Uses PAYSTACK_WEBHOOK_SECRET from environment.
+    Verifies that the webhook request came from Lemon Squeezy and has not
+    been tampered with. Uses LEMONSQUEEZY_WEBHOOK_SECRET from environment.
     
     Args:
         payload: Raw request body as bytes
-        signature: X-Paystack-Signature header value
+        signature: X-Signature header value
     
     Returns:
         True if signature is valid, False otherwise
@@ -39,20 +40,20 @@ def validate_webhook_signature(payload: bytes, signature: str) -> bool:
     Example:
         is_valid = validate_webhook_signature(
             payload=request.body,
-            signature=request.headers["X-Paystack-Signature"]
+            signature=request.headers["X-Signature"]
         )
         if not is_valid:
             return {"error": "Invalid signature"}
     """
-    secret = os.getenv("PAYSTACK_WEBHOOK_SECRET")
+    secret = os.getenv("LEMONSQUEEZY_WEBHOOK_SECRET")
     if not secret:
-        raise ValueError("PAYSTACK_WEBHOOK_SECRET environment variable not set")
+        raise ValueError("LEMONSQUEEZY_WEBHOOK_SECRET environment variable not set")
     
-    # Compute HMAC SHA-512 hash
+    # Compute HMAC SHA-256 hash
     computed_signature = hmac.new(
         key=secret.encode('utf-8'),
         msg=payload,
-        digestmod=hashlib.sha512
+        digestmod=hashlib.sha256
     ).hexdigest()
     
     # Constant-time comparison to prevent timing attacks
@@ -60,24 +61,27 @@ def validate_webhook_signature(payload: bytes, signature: str) -> bool:
 
 
 def process_webhook(
-    event_type: str,
+    event_name: str,
     payload: Dict,
+    raw_payload: bytes,
     signature: str,
     db: Session
 ) -> Dict:
     """
-    Process incoming Paystack webhook event.
+    Process incoming Lemon Squeezy webhook event.
     
     Handles subscription lifecycle events and updates user tier accordingly.
     All database operations are atomic (within transaction).
     
     Supported events:
-    - subscription.create: Upgrade user to Pro tier
-    - subscription.disable: Downgrade user to Free tier
+    - subscription_created: Upgrade user to Pro tier
+    - subscription_updated: Handle status changes (active, cancelled, expired, etc.)
+    - subscription_payment_success: Handle successful recurring payments
     
     Args:
-        event_type: Webhook event type (e.g., "subscription.create")
+        event_name: Webhook event name (e.g., "subscription_created")
         payload: Event payload as dictionary
+        raw_payload: Raw request body as bytes (for signature validation)
         signature: Webhook signature for validation
         db: Database session
     
@@ -86,8 +90,9 @@ def process_webhook(
     
     Example:
         result = process_webhook(
-            event_type="subscription.create",
+            event_name="subscription_created",
             payload={"data": {...}},
+            raw_payload=b'...',
             signature="abc123...",
             db=db
         )
@@ -95,97 +100,109 @@ def process_webhook(
             print("Webhook processed successfully")
     """
     try:
-        # Validate webhook signature
-        payload_bytes = json.dumps(payload, separators=(',', ':')).encode('utf-8')
-        if not validate_webhook_signature(payload_bytes, signature):
+        # Validate webhook signature using raw payload
+        if not validate_webhook_signature(raw_payload, signature):
             return {
                 "success": False,
                 "error": "Invalid webhook signature"
             }
         
         # Route to appropriate handler
-        if event_type == "subscription.create":
-            return _handle_subscription_create(payload, db)
-        elif event_type == "subscription.disable":
-            return _handle_subscription_disable(payload, db)
+        if event_name == "subscription_created":
+            return _handle_subscription_created(payload, db)
+        elif event_name == "subscription_updated":
+            return _handle_subscription_updated(payload, db)
+        elif event_name == "subscription_payment_success":
+            return _handle_payment_success(payload, db)
         else:
-            # Unknown event type - log but don't fail
+            # Unknown event type - acknowledge but don't process
+            print(f"Received unhandled webhook event: {event_name}")
             return {
                 "success": True,
                 "data": None
             }
     
-    except json.JSONDecodeError:
-        return {
-            "success": False,
-            "error": "Malformed webhook payload"
-        }
     except Exception as e:
+        print(f"Webhook processing error: {str(e)}")
         return {
             "success": False,
             "error": f"Webhook processing error: {str(e)}"
         }
 
 
-def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
+def _handle_subscription_created(payload: Dict, db: Session) -> Dict:
     """
-    Handle subscription.create event.
+    Handle subscription_created event.
+    
+    This event is sent when a subscription is successfully created.
+    Upgrades user to Pro tier and creates subscription record.
     """
     try:
         # Extract subscription data from payload
         data = payload.get("data", {})
-        customer = data.get("customer", {})
-        email = customer.get("email")
+        attributes = data.get("attributes", {})
         
-        if not email:
+        # Get subscription details
+        subscription_id = data.get("id")
+        customer_id = attributes.get("customer_id")
+        order_id = attributes.get("order_id")
+        product_id = attributes.get("product_id")
+        variant_id = attributes.get("variant_id")
+        status = attributes.get("status")
+        user_email = attributes.get("user_email")
+        
+        # Get custom data (contains our user_id)
+        meta = payload.get("meta", {})
+        custom_data = meta.get("custom_data", {})
+        user_id_str = custom_data.get("user_id")
+        
+        if not subscription_id:
             return {
                 "success": False,
-                "error": "Customer email not found in webhook payload"
+                "error": "Subscription ID not found in webhook payload"
             }
         
-        # Find user by email
-        user = db.query(User).filter(User.email == email).first()
+        # Find user - try by custom user_id first, then by email
+        user = None
+        if user_id_str:
+            try:
+                user_id = int(user_id_str)
+                user = db.query(User).filter(User.id == user_id).first()
+            except (ValueError, TypeError):
+                pass
+        
+        if not user and user_email:
+            user = db.query(User).filter(User.email == user_email).first()
+        
         if not user:
             return {
                 "success": False,
-                "error": f"User not found with email: {email}"
+                "error": f"User not found with email: {user_email}"
             }
         
-        # --- FIX STARTS HERE ---
-        # Map Paystack JSON keys to your Database variables
-        paystack_subscription_code = data.get("subscription_code")  # Changed from paystack_subscription_code
-        paystack_customer_code = customer.get("customer_code")      # Changed from paystack_customer_code
-        plan_code = data.get("plan", {}).get("plan_code")
-        # --- FIX ENDS HERE ---
-        
-        # Debugging: Print to console to verify Ngrok is hitting this
-        print(f"Webhook Processing: User {user.email} -> PRO. Code: {paystack_subscription_code}")
-
-        if not paystack_subscription_code:
-             return {
-                "success": False,
-                "error": "Missing subscription_code in Paystack payload"
-            }
-
-        # Calculate billing period
+        # Calculate billing period from attributes
+        renews_at = attributes.get("renews_at")
+        current_period_end = datetime.fromisoformat(renews_at.replace('Z', '+00:00')) if renews_at else None
         current_period_start = datetime.utcnow()
-        current_period_end = current_period_start + timedelta(days=30)
         
         # Check if subscription already exists (idempotency)
         existing = db.query(Subscription).filter(
-            Subscription.paystack_subscription_code == paystack_subscription_code
+            Subscription.lemonsqueezy_subscription_id == subscription_id
         ).first()
         
         if existing:
+            print(f"Subscription {subscription_id} already exists, skipping creation")
             return {"success": True, "data": None}
         
         # Create subscription record
         subscription = Subscription(
             user_id=user.id,
-            paystack_subscription_code=paystack_subscription_code,
-            paystack_customer_code=paystack_customer_code,
-            plan_code=plan_code,
-            status="active",
+            lemonsqueezy_subscription_id=subscription_id,
+            lemonsqueezy_customer_id=str(customer_id) if customer_id else None,
+            lemonsqueezy_order_id=str(order_id) if order_id else None,
+            lemonsqueezy_product_id=str(product_id) if product_id else None,
+            lemonsqueezy_variant_id=str(variant_id) if variant_id else None,
+            status=status or "active",
             current_period_start=current_period_start,
             current_period_end=current_period_end
         )
@@ -198,86 +215,137 @@ def _handle_subscription_create(payload: Dict, db: Session) -> Dict:
         db.add(subscription)
         db.commit()
         
+        print(f"✓ Subscription created: User {user.email} upgraded to PRO (ID: {subscription_id})")
+        
         return {"success": True, "data": None}
     
     except SQLAlchemyError as e:
         db.rollback()
-        print(f"DB Error: {str(e)}") # Helpful for Ngrok logs
+        print(f"Database error in subscription_created: {str(e)}")
         return {"success": False, "error": f"Database error: {str(e)}"}
     except Exception as e:
         db.rollback()
-        return {"success": False, "error": f"Error processing subscription.create: {str(e)}"}
+        print(f"Error in subscription_created: {str(e)}")
+        return {"success": False, "error": f"Error processing subscription_created: {str(e)}"}
 
 
-def _handle_subscription_disable(payload: Dict, db: Session) -> Dict:
+def _handle_subscription_updated(payload: Dict, db: Session) -> Dict:
     """
-    Handle subscription.disable event.
+    Handle subscription_updated event.
     
-    Downgrades user to Free tier and updates Subscription status.
-    Updates are atomic within a database transaction.
-    
-    Args:
-        payload: Webhook event payload
-        db: Database session
-    
-    Returns:
-        Result indicating success or error
+    This event is sent whenever a subscription changes status.
+    Updates subscription status and user tier accordingly.
     """
     try:
         # Extract subscription data from payload
         data = payload.get("data", {})
-        paystack_subscription_code = data.get("subscription_code")
+        attributes = data.get("attributes", {})
         
-        if not paystack_subscription_code:
+        subscription_id = data.get("id")
+        status = attributes.get("status")
+        cancelled = attributes.get("cancelled", False)
+        
+        if not subscription_id:
             return {
                 "success": False,
-                "error": "Subscription code not found in webhook payload"
+                "error": "Subscription ID not found in webhook payload"
             }
         
         # Find subscription
         subscription = db.query(Subscription).filter(
-            Subscription.paystack_subscription_code == paystack_subscription_code
+            Subscription.lemonsqueezy_subscription_id == subscription_id
         ).first()
         
         if not subscription:
-            return {
-                "success": False,
-                "error": f"Subscription not found: {paystack_subscription_code}"
-            }
+            # Subscription might not exist yet if this event fired before subscription_created
+            # Just acknowledge it
+            print(f"Subscription {subscription_id} not found, might be processing out of order")
+            return {"success": True, "data": None}
         
         # Get associated user
         user = db.query(User).filter(User.id == subscription.user_id).first()
         if not user:
             return {
                 "success": False,
-                "error": f"User not found for subscription: {paystack_subscription_code}"
+                "error": f"User not found for subscription: {subscription_id}"
             }
         
         # Update subscription status
-        subscription.status = "canceled"
-        subscription.cancelled_at = datetime.utcnow()
+        old_status = subscription.status
+        subscription.status = status
         
-        # Downgrade user to Free tier
-        user.tier = UserTier.FREE
+        # Update billing period if available
+        renews_at = attributes.get("renews_at")
+        if renews_at:
+            subscription.current_period_end = datetime.fromisoformat(renews_at.replace('Z', '+00:00'))
+        
+        # Handle tier changes based on status
+        if status == "active" and not cancelled:
+            # Subscription is active - ensure user is Pro
+            if user.tier != UserTier.PRO:
+                user.tier = UserTier.PRO
+                print(f"✓ User {user.email} upgraded to PRO (status: {status})")
+        
+        elif status in ["cancelled", "expired", "past_due", "unpaid"]:
+            # Subscription ended or has issues - downgrade to Free
+            if cancelled or status in ["expired"]:
+                subscription.cancelled_at = datetime.utcnow()
+            
+            if user.tier == UserTier.PRO:
+                user.tier = UserTier.FREE
+                print(f"✓ User {user.email} downgraded to FREE (status: {status})")
+        
         user.updated_at = datetime.utcnow()
         
         # Atomic commit
         db.commit()
         
-        return {
-            "success": True,
-            "data": None
-        }
+        print(f"✓ Subscription updated: {subscription_id} ({old_status} → {status})")
+        
+        return {"success": True, "data": None}
     
     except SQLAlchemyError as e:
         db.rollback()
-        return {
-            "success": False,
-            "error": f"Database error: {str(e)}"
-        }
+        print(f"Database error in subscription_updated: {str(e)}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     except Exception as e:
         db.rollback()
-        return {
-            "success": False,
-            "error": f"Error processing subscription.disable: {str(e)}"
-        }
+        print(f"Error in subscription_updated: {str(e)}")
+        return {"success": False, "error": f"Error processing subscription_updated: {str(e)}"}
+
+
+def _handle_payment_success(payload: Dict, db: Session) -> Dict:
+    """
+    Handle subscription_payment_success event.
+    
+    This is sent when a recurring payment succeeds.
+    Updates the billing period.
+    """
+    try:
+        data = payload.get("data", {})
+        attributes = data.get("attributes", {})
+        
+        subscription_id = data.get("id")
+        
+        if subscription_id:
+            # Update subscription's billing period
+            subscription = db.query(Subscription).filter(
+                Subscription.lemonsqueezy_subscription_id == subscription_id
+            ).first()
+            
+            if subscription:
+                # Update billing period
+                renews_at = attributes.get("renews_at")
+                if renews_at:
+                    subscription.current_period_start = datetime.utcnow()
+                    subscription.current_period_end = datetime.fromisoformat(renews_at.replace('Z', '+00:00'))
+                    db.commit()
+                
+                print(f"✓ Recurring payment successful for subscription: {subscription_id}")
+        
+        return {"success": True, "data": None}
+    
+    except Exception as e:
+        db.rollback()
+        print(f"Error in subscription_payment_success: {str(e)}")
+        return {"success": True, "data": None}  # Don't fail on update errors
