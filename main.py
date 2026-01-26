@@ -13,7 +13,7 @@ import os
 
 # Import route modules
 from web.routes import public, auth, dashboard, api, subscription
-
+from alerts.scheduler import start_scheduler, stop_scheduler
 # Create FastAPI app
 app = FastAPI(
     title="EOS Tracker Platform",
@@ -46,7 +46,13 @@ app.include_router(dashboard.router, tags=["Dashboard"])
 app.include_router(api.router, prefix="/api", tags=["API"])
 app.include_router(subscription.router, tags=["Subscription"])
 
-
+@app.on_event("startup")
+async def startup():
+    start_scheduler()
+   
+@app.on_event("shutdown")
+async def shutdown():
+    stop_scheduler()
 @app.get("/health")
 def health_check():
     """Health check endpoint for monitoring"""

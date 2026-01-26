@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Query,Request
 from fastapi.responses import Response, JSONResponse,RedirectResponse
 from sqlalchemy.orm import Session
 from typing import Optional
-
+from alerts.integration import trigger_immediate_alert_check
  
 from database import User, get_db
 from auth import get_current_user_optional
@@ -205,14 +205,18 @@ async def api_import_csv(
     result = import_from_csv(current_user.id, csv_content, db)
     
     if result["success"]:
-        return {
-            "success": True,
-            "data": result["data"]
-        }
-    elif "CSV export is a Pro feature" in result["error"]:
-        set_flash_message(request, result["error"], "error")
+        trigger_immediate_alert_check(current_user.id)
+
+        set_flash_message(request, result["data"])
+        return RedirectResponse(url="/tracking", status_code=303)
+    elif "Pro feature" in result["error"]:
+        set_flash_message(request, result["error"],"error")
         # Redirect to pricing so they can upgrade
         return RedirectResponse(url="/subscription", status_code=303)
+    elif "CSV must contain columns" in result["error"]:
+        set_flash_message(request, result["error"], "error")
+        # Redirect to pricing so they can upgrade
+        return RedirectResponse(url="/tracking", status_code=303)
     else:
         return JSONResponse(
             status_code=400,

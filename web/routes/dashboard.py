@@ -19,7 +19,9 @@ from tracking import (
 )
 from devices import search_devices
 from web.routes.auth import set_flash_message, get_flash_messages
-
+from alerts.integration import trigger_immediate_alert_check
+import logging
+logger = logging.getLogger(__name__)
 router = APIRouter()
 templates = Jinja2Templates(directory="web/templates")
 
@@ -157,8 +159,10 @@ def add_device_to_tracking(
     result = add_tracked_device(current_user.id, device_id, custom_name, notes, db)
     
     if not result["success"]:
+        
         set_flash_message(request, result["error"], "error")
     else:
+        trigger_immediate_alert_check(current_user.id)
         set_flash_message(request, "Device added to tracking successfully", "success")
     
     return RedirectResponse(url="/tracking", status_code=303)

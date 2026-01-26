@@ -13,7 +13,8 @@ from database import AlertType, EmailStatus
 from devices.utils import calculate_days_until_eos
 from tracking import get_user_tracked_devices
 from alerts.email import send_alert_email
-
+import logging
+logger = logging.getLogger(__name__)
 
 # Type alias for Result pattern
 Result = Dict[str, Any]
@@ -88,6 +89,7 @@ def check_user_alerts(user_id: int, db: Session) -> Result:
     """
     try:
         # Get user
+        
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             return {"success": False, "error": "User not found"}
@@ -116,9 +118,10 @@ def check_user_alerts(user_id: int, db: Session) -> Result:
         }
         
         for tracked in tracked_devices:
-            device_info = tracked["device"]
-            days_until_eos = calculate_days_until_eos(device_info["eos_date"])
             
+            device_info = tracked["device"]
+            eos_date = datetime.strptime(device_info["eos_date"], "%Y-%m-%d").date()
+            days_until_eos = calculate_days_until_eos(eos_date)
             # Check each threshold
             for alert_type, threshold in alert_thresholds.items():
                 # Check if we should send this alert

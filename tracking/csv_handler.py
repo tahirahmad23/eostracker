@@ -173,12 +173,8 @@ def import_from_csv(
         
         return {
             "success": True,
-            "data": {
-                "imported": imported_count,
-                "skipped": skipped_count,
-                "errors": error_list
+            "data": f"imported: {imported_count}, skipped: {skipped_count}"
             }
-        }
     
     except UnicodeDecodeError:
         return {

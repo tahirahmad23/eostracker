@@ -64,12 +64,19 @@
                         <span class="text-base font-medium text-neutral-500">/month</span>
                     </p>
                     {% if current_user %}
-                    <a href="/subscription" class="mt-8 block w-full bg-primary-600 border border-primary-600 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-primary-700 transition">
-                        Upgrade to Pro
-                    </a>
+                        {% if current_user.tier == "pro" %}
+                            <a href="/subscription" class="mt-8 block w-full bg-primary-600 border border-primary-600 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-primary-700 transition">
+                                Manage subscription
+                            </a>
+                        {% else %}
+                            <a href="/subscription" class="mt-8 block w-full bg-primary-600 border border-primary-600 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-primary-700 transition">
+                                Upgrade to Pro
+                            </a>
+                        {% endif %}                            
+
                     {% else %}
                     <a href="/register" class="mt-8 block w-full bg-primary-600 border border-primary-600 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-primary-700 transition">
-                        Start Free Trial
+                        Get Started
                     </a>
                     {% endif %}
                 </div>
