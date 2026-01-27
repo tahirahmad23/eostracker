@@ -17,7 +17,7 @@
                     <select id="device_id" name="device_id" required placeholder="Start typing (e.g. Cisco, Juniper...)" autocomplete="off">
                         <option value="">Choose a device...</option>
                         {% for device in devices %}
-                        <option value="{{ device.id }}">
+                        <option value="{{ device.id }}" {% if selected_device_id == device.id %}selected{% endif %}>
                         {{ device.vendor }} {{ device.model }} (EOS: {{ device.eos_date }})
                         </option>
                         {% endfor %}

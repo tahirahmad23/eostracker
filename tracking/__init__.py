@@ -12,7 +12,8 @@ from tracking.service import (
 
 from tracking.csv_handler import (
     import_from_csv,
-    export_to_csv
+    export_to_csv,
+    export_to_excel
 )
 
 __all__ = [
@@ -24,5 +25,6 @@ __all__ = [
     
     # CSV handlers
     'import_from_csv',
-    'export_to_csv'
+    'export_to_csv',
+    'export_to_excel'
 ]

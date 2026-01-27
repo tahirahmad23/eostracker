@@ -2,7 +2,8 @@
 API Routes
 JSON API endpoints for device search, tracking, and reports
 """
-
+from io import BytesIO
+import pandas as pd
 from fastapi import APIRouter, Depends, UploadFile, File, Query,Request
 from fastapi.responses import Response, JSONResponse,RedirectResponse
 from sqlalchemy.orm import Session
@@ -17,7 +18,8 @@ from tracking import (
     add_tracked_device,
     remove_tracked_device,
     import_from_csv,
-    export_to_csv
+    export_to_csv,
+    export_to_excel
 )
 from reports import generate_pdf_report, generate_csv_export
 from pydantic import BaseModel
@@ -199,8 +201,18 @@ async def api_import_csv(
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
     # Read CSV file
-    csv_content = await file.read()
-    
+    content = await file.read()
+    if file.filename.endswith(('.xlsx', '.xls')):
+        try:
+            df = pd.read_excel(BytesIO(content))
+            # Convert the dataframe to a CSV string so your existing function works
+            csv_content = df.to_csv(index=False).encode('utf-8')
+        except Exception as e:
+            set_flash_message(request, f"Invalid Excel file: {e}","error")
+            return RedirectResponse(url="/tracking", status_code=303)
+    else:
+        # It's already a CSV
+        csv_content = content
     # Import devices
     result = import_from_csv(current_user.id, csv_content, db)
     
@@ -228,7 +240,8 @@ async def api_import_csv(
 def api_export_csv(
     request : Request,
     current_user: User = Depends(get_current_user_optional),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    format: str = "excel"  # or "csv"
 ):
     """
     Export tracked devices to CSV
@@ -238,16 +251,22 @@ def api_export_csv(
 
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
-    result = export_to_csv(current_user.id, db)
+    
+    if format == "excel":
+        print("cheeek")
+        result = export_to_excel(current_user.id, db)
+    else:        
+        result = export_to_csv(current_user.id, db)
+    name = result["name"]
     if result["success"]:
         return Response(
             content=result["data"],
-            media_type="text/csv",
+            media_type=result["media_type"],
             headers={
-                "Content-Disposition": "attachment; filename=tracked_devices.csv"
+                "Content-Disposition": f"attachment; filename={name}"
             }
         )
-    elif "CSV export is a Pro feature" in result["error"]:
+    elif "Pro feature" in result["error"]:
         set_flash_message(request, result["error"], "error")
         # Redirect to pricing so they can upgrade
         return RedirectResponse(url="/subscription", status_code=303)

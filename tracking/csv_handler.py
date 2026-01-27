@@ -5,6 +5,8 @@ Handles bulk import of devices from CSV and export of tracked devices to CSV.
 
 import csv
 import io
+from io import BytesIO
+import pandas as pd
 from typing import Dict, List, Any
 from sqlalchemy.orm import Session, joinedload
 
@@ -289,11 +291,105 @@ def export_to_csv(
         
         return {
             "success": True,
-            "data": csv_bytes
+            "data": csv_bytes,
+            "media_type":"text/csv",
+            "name":"tracked_devices.csv"
         }
     
     except Exception as e:
         return {
             "success": False,
             "error": f"Failed to export CSV: {str(e)}"
+        }
+
+
+def export_to_excel(
+    user_id: int, 
+    db: Session
+) -> Result:
+    """
+    Export user's tracked devices to Excel (.xlsx) format.
+    
+    **Pro Feature Only**: Excel export is only available for Pro tier users.
+    
+    Excel Sheet Structure:
+        Vendor | Model | Custom Name | Notes | Created At
+    
+    Args:
+        user_id: ID of the user exporting devices
+        db: Database session
+    
+    Returns:
+        Result containing Excel file as bytes (BytesIO value)
+    
+    Example:
+        result = export_to_excel(user_id=1, db=db)
+        if result["success"]:
+            excel_bytes = result["data"]
+            with open("network_inventory.xlsx", "wb") as f:
+                f.write(excel_bytes)
+    """
+    try:
+        # 1. Check user exists and tier
+        from database.models import User, Device
+        from database import UserTier
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return {
+                "success": False,
+                "error": "User not found"
+            }
+        
+        # Excel export is Pro-only feature
+        if user.tier != UserTier.PRO:
+            return {
+                "success": False,
+                "error": "Excel export is a Pro feature. Upgrade to Pro to export your devices."
+            }
+
+        # 2. Fetch Devices
+        tracked_result = get_user_tracked_devices(user_id, db)
+        
+        if not tracked_result["success"]:
+            return {
+                "success": False,
+                "error": "No devices found to export."
+            }
+        tracked_devices = tracked_result["data"]
+        # 3. Process data for DataFrame
+        data = [
+            {
+                'vendor': tracked["device"]['vendor'],
+                'model': tracked["device"]['model'],
+                'device_type': tracked["device"]['device_type'],
+                'eos_date': tracked["device"]['eos_date'],
+                'custom_name': tracked['custom_name'] or '',
+                'notes': tracked['notes'] or '',
+                'days_until_eos': tracked["device"]['days_until_eos'],
+                'status': tracked["device"]['status']
+            } 
+            for tracked in tracked_devices
+        ]
+        # 4. Generate Excel in memory
+        df = pd.DataFrame(data)
+        output = BytesIO()
+        
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Inventory')
+        
+        # Get the byte values
+        excel_data = output.getvalue()
+        
+        return {
+            "success": True,
+            "data": excel_data,
+            "media_type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "name":"tracked_devices.xlsx"
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to export Excel: {str(e)}"
         }

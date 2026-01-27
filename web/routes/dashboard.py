@@ -17,7 +17,7 @@ from tracking import (
     remove_tracked_device,
     can_add_device,
 )
-from devices import search_devices
+from devices import search_devices,get_device
 from web.routes.auth import set_flash_message, get_flash_messages
 from alerts.integration import trigger_immediate_alert_check
 import logging
@@ -107,6 +107,7 @@ def tracking_page(
 @router.get("/tracking/add", response_class=HTMLResponse)
 def add_device_page(
     request: Request,
+    device_id: Optional[int] = None,
     current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
@@ -128,14 +129,27 @@ def add_device_page(
     # Get all devices for selection (limit to first 100 for dropdown)
     devices_result = search_devices("", None, None, 1, 100, db)
     devices = devices_result["data"]["devices"] if devices_result["success"] else []
-    
+    # If a specific device_id is requested, ensure it is in the list
+    if device_id:
+        # Check if device is already in the loaded devices list
+        if not any(d["id"] == device_id for d in devices):
+            try:
+                # Fetch the specific device and add it to the list
+                device_result = get_device(device_id, db)
+                if device_result["success"] and device_result["data"]:
+                    devices.insert(0, device_result["data"])
+            except Exception as e:
+                # Fallback if get_device fails or doesn't exist
+                logger.error(f"Could not fetch specific device {device_id}: {str(e)}")
+            
     return templates.TemplateResponse(
         "add_device.html",
         {
             "request": request,
             "current_user": current_user,
             "flash_messages": get_flash_messages(request),
-            "devices": devices
+            "devices": devices,
+            "selected_device_id": device_id
         }
     )
 
