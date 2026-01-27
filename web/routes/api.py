@@ -253,7 +253,7 @@ def api_export_csv(
         return RedirectResponse(url="/login", status_code=303)
     
     if format == "excel":
-        print("cheeek")
+        
         result = export_to_excel(current_user.id, db)
     else:        
         result = export_to_csv(current_user.id, db)

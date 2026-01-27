@@ -9,11 +9,24 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from starlette.middleware.sessions import SessionMiddleware
+from sqladmin import Admin
 import os
 
 # Import route modules
 from web.routes import public, auth, dashboard, api, subscription
 from alerts.scheduler import start_scheduler, stop_scheduler
+from database.connection import engine
+
+# Import admin views
+from admin.views import (
+    UserAdmin,
+    DeviceAdmin,
+    TrackedDeviceAdmin,
+    SubscriptionAdmin,
+    AlertHistoryAdmin
+)
+from admin.auth import authentication_backend
+
 # Create FastAPI app
 app = FastAPI(
     title="EOS Tracker Platform",
@@ -24,7 +37,8 @@ app = FastAPI(
 # Add session middleware for flash messages
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.getenv("SESSION_SECRET_KEY", "dev-secret-key-change-in-production")
+    secret_key=os.getenv("SESSION_SECRET_KEY", "dev-secret-key-change-in-production"),
+    
 )
 
 # Add CORS middleware
@@ -36,8 +50,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add ProxyHeadersMiddleware for ngrok compatibility
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware import Middleware
+
+# This ensures that when accessed via ngrok, the app knows the correct host/scheme
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all responses"""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN" 
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+# This ensures that when accessed via ngrok, the app knows the correct host/scheme
+@app.middleware("http")
+async def add_proxy_headers(request: Request, call_next):
+    # Trust proxy headers from ngrok
+    response = await call_next(request)
+    return response
+
 # Mount static files
 app.mount("/static", StaticFiles(directory="web/static"), name="static")
+
+# Initialize SQLAdmin with authentication backend
+admin = Admin(
+    app, 
+    engine, 
+    title="EOS Tracker Admin", 
+    base_url="/admin",
+    authentication_backend=authentication_backend
+)
+
+# Register admin views
+admin.add_view(UserAdmin)
+admin.add_view(DeviceAdmin)
+admin.add_view(TrackedDeviceAdmin)
+admin.add_view(SubscriptionAdmin)
+admin.add_view(AlertHistoryAdmin)
 
 # Include route modules
 app.include_router(public.router, tags=["Public"])
@@ -53,6 +104,7 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     stop_scheduler()
+
 @app.get("/health")
 def health_check():
     """Health check endpoint for monitoring"""

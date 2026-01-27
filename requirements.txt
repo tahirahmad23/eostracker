@@ -5,6 +5,7 @@ uvicorn[standard]
 python-multipart
 jinja2
 pandas
+
 # Database
 sqlalchemy
 alembic
@@ -15,6 +16,7 @@ python-jose[cryptography]
 python-dotenv
 bcrypt<4.0 
 passlib==1.7.4
+
 # Validation
 pydantic
 pydantic-settings
@@ -51,3 +53,7 @@ reportlab
 pdfminer.six
 
 itsdangerous
+
+# Admin Interface
+sqladmin
+wtforms

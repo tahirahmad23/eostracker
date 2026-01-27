@@ -60,6 +60,7 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
     tier = Column(SQLEnum(UserTier), default=UserTier.FREE, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
@@ -70,6 +71,7 @@ class User(Base):
     
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', tier='{self.tier}')>"
+
 
 
 class Device(Base):

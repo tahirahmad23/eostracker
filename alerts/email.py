@@ -8,6 +8,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 import resend
 from sqlalchemy.orm import Session
+from html import escape as html_escape
 
 
 # Type alias for Result pattern
@@ -46,24 +47,29 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
     threshold = alert_messages.get(alert_type, f"{alert_type} days")
     device_count = len(devices)
     device_plural = "device" if device_count == 1 else "devices"
+    # Escape user name to prevent XSS
+    safe_user_name = html_escape(user_name)
+    
     
     # Build device rows
     device_rows = ""
     for device in devices:
-        custom_name_display = f"<br><small style='color: #666;'>({device['custom_name']})</small>" if device.get('custom_name') else ""
+        # Escape custom name if present
+        safe_custom_name = html_escape(device['custom_name']) if device.get('custom_name') else ""
+        custom_name_display = f"<br><small style='color: #666;'>({safe_custom_name})</small>" if safe_custom_name else ""
         eos_date_str = device['eos_date'].strftime('%B %d, %Y') if isinstance(device['eos_date'], datetime) else str(device['eos_date'])
         
         device_rows += f"""
         <tr>
             <td style="padding: 12px; border-bottom: 1px solid #eee;">
                 <strong>{device['vendor']} {device['model']}</strong>{custom_name_display}
-                <br><small style="color: #666;">{device['device_type']}</small>
+                <br><small style="color: #6c757d;">{device['device_type']}</small>
             </td>
             <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
-                <span style="color: #d9534f; font-weight: bold;">{eos_date_str}</span>
+                <span style="color: #dc2626; font-weight: bold;">{eos_date_str}</span>
             </td>
             <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
-                <span style="background: #f0ad4e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 14px;">
+                <span style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 14px;">
                     {device['days_until_eos']} days
                 </span>
             </td>
@@ -85,7 +91,7 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
                     <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <!-- Header -->
                         <tr>
-                            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                            <td style="background: linear-gradient(135deg, #003f5d 0%, #00547c 100%); padding: 30px; text-align: center;">
                                 <h1 style="color: #ffffff; margin: 0; font-size: 28px;">⚠️ EOS Alert</h1>
                                 <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px;">End-of-Support Notification</p>
                             </td>
@@ -94,15 +100,15 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
                         <!-- Content -->
                         <tr>
                             <td style="padding: 30px;">
-                                <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">
-                                    Hello <strong>{user_name}</strong>,
+                                <p style="font-size: 16px; color: #212529; margin: 0 0 20px 0;">
+                                    Hello <strong>{safe_user_name}</strong>,
                                 </p>
                                 
-                                <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">
-                                    You have <strong>{device_count} {device_plural}</strong> reaching End-of-Support in approximately <strong style="color: #d9534f;">{threshold}</strong>.
+                                <p style="font-size: 16px; color: #212529; margin: 0 0 20px 0;">
+                                    You have <strong>{device_count} {device_plural}</strong> reaching End-of-Support in approximately <strong style="color: #dc2626;">{threshold}</strong>.
                                 </p>
                                 
-                                <div style="background-color: #fff3cd; border-left: 4px solid #f0ad4e; padding: 15px; margin: 20px 0;">
+                                <div style="background-color: #fff3cd; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
                                     <p style="margin: 0; color: #856404; font-size: 14px;">
                                         <strong>⏰ Action Required:</strong> Review these devices and plan for replacements or upgrades to maintain security and support coverage.
                                     </p>
@@ -131,7 +137,7 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
                                 </p>
                                 
                                 <div style="text-align: center; margin: 30px 0;">
-                                    <a href="https://eosalert.com/dashboard" style="background-color: #667eea; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-size: 16px; display: inline-block;">
+                                    <a href="https://eosalert.com/dashboard" style="background-color: #00699b; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-size: 16px; display: inline-block;">
                                         View Dashboard
                                     </a>
                                 </div>
@@ -145,7 +151,7 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
                                     You're receiving this email because you're tracking these devices on EOS Alert.
                                 </p>
                                 <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
-                                    <a href="https://eosalert.com/settings" style="color: #667eea; text-decoration: none;">Manage Alert Settings</a>
+                                    <a href="https://eosalert.com/settings" style="color: #00699b; text-decoration: none;">Manage Alert Settings</a>
                                 </p>
                             </td>
                         </tr>
@@ -185,8 +191,8 @@ def _create_welcome_email_html(user_name: str) -> str:
                     <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <!-- Header -->
                         <tr>
-                            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;">
-                                <h1 style="color: #ffffff; margin: 0; font-size: 32px;">Welcome to EOS Alert! 🎉</h1>
+                            <td style="background: linear-gradient(135deg, #003f5d 0%, #00547c 100%); padding: 40px; text-align: center;">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 32px;">Welcome to EOS Alert!</h1>
                                 <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 18px;">Your Network's Safety Net</p>
                             </td>
                         </tr>
@@ -194,31 +200,31 @@ def _create_welcome_email_html(user_name: str) -> str:
                         <!-- Content -->
                         <tr>
                             <td style="padding: 40px 30px;">
-                                <p style="font-size: 18px; color: #333; margin: 0 0 20px 0;">
-                                    Hi <strong>{user_name}</strong>,
+                                <p style="font-size: 18px; color: #212529; margin: 0 0 20px 0;">
+                                    Hi <strong>{html_escape(user_name)}</strong>,
                                 </p>
                                 
-                                <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">
+                                <p style="font-size: 16px; color: #495057; margin: 0 0 20px 0;">
                                     Welcome aboard! We're excited to help you stay ahead of End-of-Support dates and keep your network infrastructure secure.
                                 </p>
                                 
-                                <div style="background-color: #e7f3ff; border-left: 4px solid #667eea; padding: 20px; margin: 30px 0;">
-                                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">🚀 Getting Started</h3>
-                                    <ol style="margin: 0; padding-left: 20px; color: #555; font-size: 15px; line-height: 1.8;">
+                                <div style="background-color: #e6f5f0; border-left: 4px solid #009b69; padding: 20px; margin: 30px 0;">
+                                    <h3 style="margin: 0 0 15px 0; color: #005d3f; font-size: 18px;">Getting Started</h3>
+                                    <ol style="margin: 0; padding-left: 20px; color: #495057; font-size: 15px; line-height: 1.8;">
                                         <li><strong>Add your devices:</strong> Track up to 3 devices on the free tier</li>
                                         <li><strong>Set up alerts:</strong> Receive notifications at 365, 180, 90, and 30 days before EOS</li>
                                         <li><strong>Generate reports:</strong> Create professional PDF reports for stakeholders</li>
                                     </ol>
                                 </div>
                                 
-                                <h3 style="color: #333; font-size: 18px; margin: 30px 0 15px 0;">📊 What You Can Do</h3>
+                                <h3 style="color: #212529; font-size: 18px; margin: 30px 0 15px 0;">📊 What You Can Do</h3>
                                 
                                 <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
                                     <tr>
                                         <td style="padding: 15px; background-color: #f8f9fa; border-radius: 4px; margin-bottom: 10px;">
-                                            <strong style="color: #667eea; font-size: 16px;">✓</strong>
-                                            <strong style="color: #333; margin-left: 10px;">Track Critical Dates</strong>
-                                            <p style="margin: 5px 0 0 35px; color: #666; font-size: 14px;">
+                                            <strong style="color: #009b69; font-size: 16px;">✓</strong>
+                                            <strong style="color: #212529; margin-left: 10px;">Track Critical Dates</strong>
+                                            <p style="margin: 5px 0 0 35px; color: #495057; font-size: 14px;">
                                                 Monitor EOS dates for all your network equipment in one place
                                             </p>
                                         </td>
@@ -226,9 +232,9 @@ def _create_welcome_email_html(user_name: str) -> str:
                                     <tr><td style="height: 10px;"></td></tr>
                                     <tr>
                                         <td style="padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
-                                            <strong style="color: #667eea; font-size: 16px;">✓</strong>
-                                            <strong style="color: #333; margin-left: 10px;">Automated Alerts</strong>
-                                            <p style="margin: 5px 0 0 35px; color: #666; font-size: 14px;">
+                                            <strong style="color: #009b69; font-size: 16px;">✓</strong>
+                                            <strong style="color: #212529; margin-left: 10px;">Automated Alerts</strong>
+                                            <p style="margin: 5px 0 0 35px; color: #495057; font-size: 14px;">
                                                 Get email notifications at key milestones before support ends
                                             </p>
                                         </td>
@@ -236,29 +242,29 @@ def _create_welcome_email_html(user_name: str) -> str:
                                     <tr><td style="height: 10px;"></td></tr>
                                     <tr>
                                         <td style="padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
-                                            <strong style="color: #667eea; font-size: 16px;">✓</strong>
-                                            <strong style="color: #333; margin-left: 10px;">Professional Reports</strong>
-                                            <p style="margin: 5px 0 0 35px; color: #666; font-size: 14px;">
+                                            <strong style="color: #009b69; font-size: 16px;">✓</strong>
+                                            <strong style="color: #212529; margin-left: 10px;">Professional Reports</strong>
+                                            <p style="margin: 5px 0 0 35px; color: #495057; font-size: 14px;">
                                                 Generate PDF reports to share with management and stakeholders
                                             </p>
                                         </td>
                                     </tr>
                                 </table>
                                 
-                                <div style="background-color: #fff3cd; border-left: 4px solid #f0ad4e; padding: 15px; margin: 30px 0;">
+                                <div style="background-color: #fff3cd; border-left: 4px solid #f59e0b; padding: 15px; margin: 30px 0;">
                                     <p style="margin: 0; color: #856404; font-size: 14px;">
                                         <strong>💡 Pro Tip:</strong> Upgrade to Pro ($49/month) for unlimited device tracking, CSV bulk import, and enhanced reporting features.
                                     </p>
                                 </div>
                                 
                                 <div style="text-align: center; margin: 40px 0 20px 0;">
-                                    <a href="https://eosalert.com/dashboard" style="background-color: #667eea; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 18px; display: inline-block; font-weight: bold;">
+                                    <a href="https://eosalert.com/dashboard" style="background-color: #00699b; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 18px; display: inline-block; font-weight: bold;">
                                         Go to Dashboard
                                     </a>
                                 </div>
                                 
                                 <p style="font-size: 14px; color: #666; margin: 30px 0 0 0; text-align: center;">
-                                    Need help? Reply to this email or visit our <a href="https://eosalert.com/help" style="color: #667eea;">Help Center</a>
+                                    Need help? Reply to this email or visit our <a href="https://eosalert.com/help" style="color: #00699b;">Help Center</a>
                                 </p>
                             </td>
                         </tr>
@@ -378,7 +384,7 @@ def send_welcome_email(user_email: str, user_name: str) -> Result:
         
         # Create email content
         html_body = _create_welcome_email_html(user_name)
-        subject = "🎉 Welcome to EOS Alert - Get Started Today!"
+        subject = "Welcome to EOS Alert - Get Started Today!"
         # Send email via Resend
         params = {
             "from": FROM_EMAIL,

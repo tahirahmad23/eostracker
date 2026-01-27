@@ -136,7 +136,7 @@ def check_user_alerts(user_id: int, db: Session) -> Result:
                         )
                     ).first()
                     
-                    if not already_sent:
+                    if not already_sent or already_sent.email_status == EmailStatus.FAILED:
                         alerts_to_send[alert_type].append({
                             "tracked_device_id": tracked["id"],
                             "device_info": device_info,

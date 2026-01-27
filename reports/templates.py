@@ -25,8 +25,8 @@ from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 
 
 # Brand colors
-BRAND_PRIMARY = colors.HexColor('#6366F1')  # Indigo
-BRAND_SECONDARY = colors.HexColor('#8B5CF6')  # Purple
+BRAND_PRIMARY = colors.HexColor('#00699b')  # Indigo
+BRAND_SECONDARY = colors.HexColor('#009b69')  # Purple
 STATUS_ACTIVE = colors.HexColor('#10B981')  # Green
 STATUS_APPROACHING = colors.HexColor('#F59E0B')  # Orange
 STATUS_EOS = colors.HexColor('#EF4444')  # Red
@@ -285,7 +285,7 @@ def create_device_table(devices: List[Dict[str, Any]]) -> Table:
     ]]
     
     # Add device rows
-    print(devices)
+    
     for device in devices:
         custom_name = device.get('custom_name') or '-'
         
