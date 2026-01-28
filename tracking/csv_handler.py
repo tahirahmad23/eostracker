@@ -9,9 +9,12 @@ from io import BytesIO
 import pandas as pd
 from typing import Dict, List, Any
 from sqlalchemy.orm import Session, joinedload
+import logging
 
 from database.models import Device, TrackedDevice
 from tracking.service import add_tracked_device, get_user_tracked_devices
+
+logger = logging.getLogger(__name__)
 
 # Type alias for Result pattern
 Result = Dict[str, Any]
@@ -66,6 +69,7 @@ def import_from_csv(
         
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("CSV import failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -73,6 +77,7 @@ def import_from_csv(
         
         # CSV import is Pro-only feature
         if user.tier != UserTier.PRO:
+            logger.info("CSV import blocked: pro tier required")
             return {
                 "success": False,
                 "error": "CSV bulk import is a Pro feature. Upgrade to Pro to import devices from CSV."
@@ -89,6 +94,7 @@ def import_from_csv(
         
         # Validate CSV headers
         if csv_reader.fieldnames is None:
+            logger.warning("CSV import failed: missing headers")
             return {
                 "success": False,
                 "error": "CSV file is empty or has no headers"
@@ -98,6 +104,7 @@ def import_from_csv(
         csv_headers = set(csv_reader.fieldnames)
         
         if not required_headers.issubset(csv_headers):
+            logger.warning("CSV import failed: required headers missing")
             return {
                 "success": False,
                 "error": f"CSV must contain columns: {', '.join(required_headers)}"
@@ -179,12 +186,14 @@ def import_from_csv(
             }
     
     except UnicodeDecodeError:
+        logger.exception("CSV import failed: invalid encoding")
         return {
             "success": False,
             "error": "Invalid file encoding. CSV must be UTF-8 encoded"
         }
     
     except csv.Error as e:
+        logger.exception("CSV import failed: invalid CSV format")
         return {
             "success": False,
             "error": f"Invalid CSV format: {str(e)}"
@@ -192,6 +201,7 @@ def import_from_csv(
     
     except Exception as e:
         db.rollback()
+        logger.exception("CSV import failed")
         return {
             "success": False,
             "error": f"Failed to import CSV: {str(e)}"
@@ -232,6 +242,7 @@ def export_to_csv(
         
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("CSV export failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -239,6 +250,7 @@ def export_to_csv(
         
         # CSV export is Pro-only feature
         if user.tier != UserTier.PRO:
+            logger.info("CSV export blocked: pro tier required")
             return {
                 "success": False,
                 "error": "CSV export is a Pro feature. Upgrade to Pro to export your devices to CSV."
@@ -288,7 +300,7 @@ def export_to_csv(
         
         # Convert to bytes
         csv_bytes = output.getvalue().encode('utf-8')
-        
+        logger.info("CSV export generated", extra={"device_count": len(tracked_devices)})
         return {
             "success": True,
             "data": csv_bytes,
@@ -297,6 +309,7 @@ def export_to_csv(
         }
     
     except Exception as e:
+        logger.exception("CSV export failed")
         return {
             "success": False,
             "error": f"Failed to export CSV: {str(e)}"
@@ -336,6 +349,7 @@ def export_to_excel(
         
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("Excel export failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -343,6 +357,7 @@ def export_to_excel(
         
         # Excel export is Pro-only feature
         if user.tier != UserTier.PRO:
+            logger.info("Excel export blocked: pro tier required")
             return {
                 "success": False,
                 "error": "Excel export is a Pro feature. Upgrade to Pro to export your devices."
@@ -380,7 +395,7 @@ def export_to_excel(
         
         # Get the byte values
         excel_data = output.getvalue()
-        
+        logger.info("Excel export generated", extra={"device_count": len(tracked_devices)})
         return {
             "success": True,
             "data": excel_data,
@@ -389,6 +404,7 @@ def export_to_excel(
         }
 
     except Exception as e:
+        logger.exception("Excel export failed")
         return {
             "success": False,
             "error": f"Failed to export Excel: {str(e)}"

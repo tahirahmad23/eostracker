@@ -1,20 +1,20 @@
 /*
  * Custom CSS Enhancements for EOS Tracker
  * This file contains utility classes and custom styling
- * Tailwind CSS is loaded from CDN in base.html
+ * Works alongside terminal.css for the complete design system
  */
 
-/* Status-based text colors */
+/* Status-based text colors (preserved from original) */
 .status-active { 
-    color: #009b69; 
+    color: #059669; 
 }
 
 .status-approaching { 
-    color: #f59e0b; 
+    color: #D97706; 
 }
 
 .status-eos { 
-    color: #dc2626; 
+    color: #DC2626; 
 }
 
 /* Smooth scrolling */
@@ -30,7 +30,7 @@ html {
 
 /* Custom focus styles for accessibility */
 *:focus-visible {
-    outline: 2px solid #00699b;
+    outline: 2px solid #2563EB;
     outline-offset: 2px;
 }
 
@@ -61,4 +61,39 @@ html {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Mobile-specific utilities */
+@media (max-width: 768px) {
+    /* Increase touch target sizes on mobile */
+    .touch-target {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Better text sizing for mobile */
+    .mobile-text-base {
+        font-size: 14px;
+    }
+    
+    .mobile-text-sm {
+        font-size: 12px;
+    }
+}
+
+/* Horizontal scroll hint for tables on mobile */
+@media (max-width: 768px) {
+    .table-wrapper::after {
+        content: '← Scroll →';
+        display: block;
+        text-align: center;
+        font-size: 10px;
+        color: #888;
+        margin-top: 4px;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+    
+    .table-wrapper.scrolled::after {
+        content: '';
+    }
 }

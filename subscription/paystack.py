@@ -12,7 +12,9 @@ All functions return Result<T> for consistent error handling.
 import os
 from typing import Dict
 from pypaystack2 import PaystackClient as PyPaystackClient
+import logging
 
+logger = logging.getLogger(__name__)
 
 class PaystackClient:
     """
@@ -32,6 +34,7 @@ class PaystackClient:
         """
         self.secret_key = os.getenv("PAYSTACK_SECRET_KEY")
         if not self.secret_key:
+            logger.error("PAYSTACK_SECRET_KEY not configured")
             raise ValueError("PAYSTACK_SECRET_KEY environment variable not set")
         
         self.public_key = os.getenv("PAYSTACK_PUBLIC_KEY")
@@ -77,6 +80,7 @@ class PaystackClient:
                 print(result["data"]["authorization_url"])
         """
         try:
+            logger.debug("Creating Paystack checkout")
             # Initialize transaction for subscription using pypaystack2
             response = self.client.transactions.initialize(
                 email=email,
@@ -91,6 +95,7 @@ class PaystackClient:
             
             # pypaystack2 returns Response object with status, message, data
             if response.status:
+                logger.info("Paystack checkout created")
                 return {
                     "success": True,
                     "data": {
@@ -100,12 +105,14 @@ class PaystackClient:
                     }
                 }
             else:
+                logger.warning("Paystack API error during checkout creation")
                 return {
                     "success": False,
                     "error": f"Paystack API error: {response.message}"
                 }
         
         except Exception as e:
+            logger.exception("Failed to create Paystack checkout session")
             return {
                 "success": False,
                 "error": f"Failed to create checkout session: {str(e)}"
@@ -139,6 +146,7 @@ class PaystackClient:
                 print("Subscription cancelled")
         """
         try:
+            logger.debug("Cancelling Paystack subscription")
             # Disable subscription using pypaystack2
             response = self.client.subscriptions.disable(
                 code=subscription_code,
@@ -147,6 +155,7 @@ class PaystackClient:
             
             # pypaystack2 returns Response object
             if response.status:
+                logger.info("Paystack subscription cancellation requested")
                 return {
                     "success": True,
                     "data": {
@@ -154,12 +163,14 @@ class PaystackClient:
                     }
                 }
             else:
+                logger.warning("Paystack API error during cancellation")
                 return {
                     "success": False,
                     "error": f"Paystack API error: {response.message}"
                 }
         
         except Exception as e:
+            logger.exception("Failed to cancel Paystack subscription")
             return {
                 "success": False,
                 "error": f"Failed to cancel subscription: {str(e)}"
@@ -184,11 +195,13 @@ class PaystackClient:
                 print("Payment confirmed")
         """
         try:
+            logger.debug("Verifying Paystack transaction")
             # Verify transaction using pypaystack2
             response = self.client.transactions.verify(reference=reference)
             
             # pypaystack2 returns Response object
             if response.status:
+                logger.info("Paystack transaction verified")
                 return {
                     "success": True,
                     "data": {
@@ -199,12 +212,14 @@ class PaystackClient:
                     }
                 }
             else:
+                logger.warning("Paystack transaction verification error")
                 return {
                     "success": False,
                     "error": f"Paystack API error: {response.message}"
                 }
         
         except Exception as e:
+            logger.exception("Failed to verify Paystack transaction")
             return {
                 "success": False,
                 "error": f"Failed to verify transaction: {str(e)}"

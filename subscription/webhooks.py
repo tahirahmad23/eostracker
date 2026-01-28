@@ -18,10 +18,12 @@ from typing import Dict
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+import logging
 
 from database.models import User, Subscription
 from database import UserTier
 
+logger = logging.getLogger(__name__)
 
 def validate_webhook_signature(payload: bytes, signature: str) -> bool:
     """
@@ -102,6 +104,7 @@ def process_webhook(
     try:
         # Validate webhook signature using raw payload
         if not validate_webhook_signature(raw_payload, signature):
+            logger.warning("Webhook signature invalid")
             return {
                 "success": False,
                 "error": "Invalid webhook signature"
@@ -116,14 +119,14 @@ def process_webhook(
             return _handle_payment_success(payload, db)
         else:
             # Unknown event type - acknowledge but don't process
-            print(f"Received unhandled webhook event: {event_name}")
+            logger.info("Unhandled webhook event received", extra={"event_name": str(event_name)})
             return {
                 "success": True,
                 "data": None
             }
     
     except Exception as e:
-        print(f"Webhook processing error: {str(e)}")
+        logger.exception("Webhook processing error")
         return {
             "success": False,
             "error": f"Webhook processing error: {str(e)}"
@@ -191,7 +194,7 @@ def _handle_subscription_created(payload: Dict, db: Session) -> Dict:
         ).first()
         
         if existing:
-            print(f"Subscription {subscription_id} already exists, skipping creation")
+            logger.info("Subscription already exists, skipping creation")
             return {"success": True, "data": None}
         
         # Create subscription record
@@ -214,18 +217,18 @@ def _handle_subscription_created(payload: Dict, db: Session) -> Dict:
         # Atomic commit
         db.add(subscription)
         db.commit()
-        
-        print(f"✓ Subscription created: User {user.email} upgraded to PRO (ID: {subscription_id})")
+
+        logger.info("Subscription created via webhook (user upgraded)")
         
         return {"success": True, "data": None}
     
     except SQLAlchemyError as e:
         db.rollback()
-        print(f"Database error in subscription_created: {str(e)}")
+        logger.exception("Database error in subscription_created")
         return {"success": False, "error": f"Database error: {str(e)}"}
     except Exception as e:
         db.rollback()
-        print(f"Error in subscription_created: {str(e)}")
+        logger.exception("Error processing subscription_created")
         return {"success": False, "error": f"Error processing subscription_created: {str(e)}"}
 
 
@@ -259,7 +262,7 @@ def _handle_subscription_updated(payload: Dict, db: Session) -> Dict:
         if not subscription:
             # Subscription might not exist yet if this event fired before subscription_created
             # Just acknowledge it
-            print(f"Subscription {subscription_id} not found, might be processing out of order")
+            logger.info("Subscription not found for update; may be out of order")
             return {"success": True, "data": None}
         
         # Get associated user
@@ -284,7 +287,7 @@ def _handle_subscription_updated(payload: Dict, db: Session) -> Dict:
             # Subscription is active - ensure user is Pro
             if user.tier != UserTier.PRO:
                 user.tier = UserTier.PRO
-                print(f"✓ User {user.email} upgraded to PRO (status: {status})")
+                logger.info("User upgraded to PRO via webhook", extra={"status": str(status)})
         
         elif status in ["cancelled", "expired", "past_due", "unpaid"]:
             # Subscription ended or has issues - downgrade to Free
@@ -293,24 +296,27 @@ def _handle_subscription_updated(payload: Dict, db: Session) -> Dict:
             
             if user.tier == UserTier.PRO:
                 user.tier = UserTier.FREE
-                print(f"✓ User {user.email} downgraded to FREE (status: {status})")
+                logger.info("User downgraded to FREE via webhook", extra={"status": str(status)})
         
         user.updated_at = datetime.utcnow()
         
         # Atomic commit
         db.commit()
-        
-        print(f"✓ Subscription updated: {subscription_id} ({old_status} → {status})")
+
+        logger.info(
+            "Subscription updated via webhook",
+            extra={"old_status": str(old_status), "new_status": str(status)},
+        )
         
         return {"success": True, "data": None}
     
     except SQLAlchemyError as e:
         db.rollback()
-        print(f"Database error in subscription_updated: {str(e)}")
+        logger.exception("Database error in subscription_updated")
         return {"success": False, "error": f"Database error: {str(e)}"}
     except Exception as e:
         db.rollback()
-        print(f"Error in subscription_updated: {str(e)}")
+        logger.exception("Error processing subscription_updated")
         return {"success": False, "error": f"Error processing subscription_updated: {str(e)}"}
 
 
@@ -340,12 +346,12 @@ def _handle_payment_success(payload: Dict, db: Session) -> Dict:
                     subscription.current_period_start = datetime.utcnow()
                     subscription.current_period_end = datetime.fromisoformat(renews_at.replace('Z', '+00:00'))
                     db.commit()
-                
-                print(f"✓ Recurring payment successful for subscription: {subscription_id}")
+
+                logger.info("Recurring payment processed via webhook")
         
         return {"success": True, "data": None}
     
     except Exception as e:
         db.rollback()
-        print(f"Error in subscription_payment_success: {str(e)}")
+        logger.exception("Error processing subscription_payment_success")
         return {"success": True, "data": None}  # Don't fail on update errors

@@ -273,15 +273,14 @@ def check_user_alerts_now(user_id: int) -> dict:
     """
     from alerts.service import check_user_alerts
     
-    logger.info(f"Checking alerts for user {user_id} (triggered by device add)")
+    logger.info("Checking alerts (triggered by device add)")
     
     db = SessionLocal()
     try:
         result = check_user_alerts(user_id, db)
         
         if result["success"] and result["data"] > 0:
-            logger.info(f"Sent {result['data']} immediate alert(s) to user {user_id}")
-        logger.info(f"{result}")
+            logger.info(f"Sent {result['data']} immediate alert(s)")
         return result
     
     finally:

@@ -7,10 +7,13 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
+import logging
 
 from database.models import User, Device, TrackedDevice
 from database import UserTier
 from devices.service import get_device
+
+logger = logging.getLogger(__name__)
 
 # Type aliases for Result pattern
 Result = Dict[str, Any]
@@ -55,6 +58,7 @@ def add_tracked_device(
         # Validate user exists
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("Add tracked device failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -62,6 +66,7 @@ def add_tracked_device(
         
         # Validate custom_name length if provided
         if custom_name and len(custom_name) > 100:
+            logger.warning("Add tracked device failed: custom name too long")
             return {
                 "success": False,
                 "error": "Custom name must be 100 characters or less"
@@ -70,6 +75,7 @@ def add_tracked_device(
         # Check if device exists using device catalog service
         device_result = get_device(device_id, db)
         if not device_result["success"]:
+            logger.warning("Add tracked device failed: device not found in catalog")
             return {
                 "success": False,
                 "error": "Device not found in catalog"
@@ -84,6 +90,7 @@ def add_tracked_device(
         ).first()
         
         if existing:
+            logger.info("Add tracked device skipped: device already tracked")
             return {
                 "success": False,
                 "error": "Device is already being tracked"
@@ -96,6 +103,7 @@ def add_tracked_device(
             ).count()
             
             if tracked_count >= MAX_DEVICES_FREE:
+                logger.info("Add tracked device blocked: free tier limit reached")
                 return {
                     "success": False,
                     "error": f"Free tier limited to {MAX_DEVICES_FREE} devices. Upgrade to Pro for unlimited tracking."
@@ -121,7 +129,8 @@ def add_tracked_device(
         
         # Build TrackedDeviceInfo response
         tracked_info = _build_tracked_device_info(tracked_device_with_device)
-        
+
+        logger.info("Device added to tracking")
         return {
             "success": True,
             "data": tracked_info
@@ -129,6 +138,7 @@ def add_tracked_device(
     
     except Exception as e:
         db.rollback()
+        logger.exception("Failed to add tracked device")
         return {
             "success": False,
             "error": f"Failed to add tracked device: {str(e)}"
@@ -163,6 +173,7 @@ def remove_tracked_device(
         ).first()
         
         if not tracked:
+            logger.warning("Remove tracked device failed: tracked device not found")
             return {
                 "success": False,
                 "error": "Tracked device not found"
@@ -170,6 +181,7 @@ def remove_tracked_device(
         
         # Verify ownership
         if tracked.user_id != user_id:
+            logger.warning("Remove tracked device denied: not owner")
             return {
                 "success": False,
                 "error": "You can only remove devices you are tracking"
@@ -178,7 +190,8 @@ def remove_tracked_device(
         # Delete tracked device
         db.delete(tracked)
         db.commit()
-        
+
+        logger.info("Device removed from tracking")
         return {
             "success": True,
             "data": None
@@ -186,6 +199,7 @@ def remove_tracked_device(
     
     except Exception as e:
         db.rollback()
+        logger.exception("Failed to remove tracked device")
         return {
             "success": False,
             "error": f"Failed to remove tracked device: {str(e)}"
@@ -219,6 +233,7 @@ def get_user_tracked_devices(
         # Validate user exists
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("Get tracked devices failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -237,7 +252,8 @@ def get_user_tracked_devices(
         tracked_list = [
             _build_tracked_device_info(td) for td in tracked_devices
         ]
-        
+
+        logger.debug("Tracked devices retrieved")
         return {
             "success": True,
             "data": tracked_list
@@ -245,6 +261,7 @@ def get_user_tracked_devices(
     
     except Exception as e:
         db.rollback()
+        logger.exception("Failed to get tracked devices")
         return {
             "success": False,
             "error": f"Failed to get tracked devices: {str(e)}"
@@ -277,6 +294,7 @@ def can_add_device(
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("Device limit check failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -284,6 +302,7 @@ def can_add_device(
         
         # Pro users can always add devices
         if user.tier == UserTier.PRO:
+            logger.debug("Device limit check: pro user allowed")
             return {
                 "success": True,
                 "data": True
@@ -295,13 +314,15 @@ def can_add_device(
         ).count()
         
         can_add = tracked_count < MAX_DEVICES_FREE
-        
+
+        logger.debug("Device limit check completed")
         return {
             "success": True,
             "data": can_add
         }
     
     except Exception as e:
+        logger.exception("Failed to check device limit")
         return {
             "success": False,
             "error": f"Failed to check device limit: {str(e)}"

@@ -1,85 +1,71 @@
 {% extends "base.html" %}
 
-{% block title %}Sign In - EOS Tracker{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full">
-        <div class="bg-white border border-neutral-200 rounded-lg shadow-sm p-8">
-            <div class="text-center mb-8">
-                <svg class="mx-auto h-12 w-12 text-primary-600" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="4" width="24" height="24" rx="2" stroke="currentColor" stroke-width="2"/>
-                    <path d="M4 12H28" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="10" cy="8" r="1" fill="currentColor"/>
-                    <circle cx="14" cy="8" r="1" fill="currentColor"/>
-                    <circle cx="18" cy="8" r="1" fill="currentColor"/>
-                    <path d="M8 18H24M8 22H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <h2 class="mt-6 text-2xl font-bold text-neutral-900">
-                    Sign in to your account
-                </h2>
-                <p class="mt-2 text-sm text-neutral-600">
-                    Or
-                    <a href="/register" class="font-medium text-primary-600 hover:text-primary-700 transition">
-                        create a new account
-                    </a>
-                </p>
-            </div>
-            
-            <form class="space-y-5" action="/login" method="POST">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-neutral-700 mb-1">Email address</label>
-                    <input id="email" name="email" type="email" required class="appearance-none block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" placeholder="engineer@company.com">
-                </div>
-                
+<div class="mobile-card"
+    style="max-width: 400px; margin: 40px auto; border: 1px solid var(--border-color); padding: 30px; background: #fafafa;">
+    <h3>> USER_AUTH</h3>
 
-  <div class="relative">
-    <label for="password" class="block text-sm font-medium text-neutral-700 mb-1">Password</label>
-    <div class="relative">
-        <input id="password" name="password" autocomplete="current-password" type="password" required class="appearance-none block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" placeholder="••••••••">
-        <button type="button" onclick="togglePassword('password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-primary-600">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="password-icon">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-        </button>
+    {% if error %}
+    <div class="sys-log error" style="margin-bottom: 20px;">
+        [AUTH_FAIL]: {{ error }}
     </div>
-</div>                
-                <div class="flex items-center">
-                    <input id="remember_me" name="remember_me" type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded">
-                    <label for="remember_me" class="ml-2 block text-sm text-neutral-700">
-                        Remember me
-                    </label>
-                </div>
+    {% endif %}
 
-                <div>
-                    <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition">
-                        Sign in
-                    </button>
-                </div>
-            </form>
+    <form action="/login" method="POST">
+        <div style="margin-bottom: 15px;">
+            <label class="mono text-sm" style="display: block; margin-bottom: 4px;">USERNAME / EMAIL:</label>
+            <input type="email" name="email" id="email" required autofocus placeholder="engineer@company.com">
         </div>
+
+        <div style="margin-bottom: 15px;">
+            <label class="mono text-sm" style="display: block; margin-bottom: 4px;">PASSWORD:</label>
+            <div style="position: relative;">
+                <input type="password" name="password" id="password" required autocomplete="current-password" placeholder="••••••••" style="padding-right: 50px;">
+                <button type="button" onclick="togglePassword('password')" 
+                    style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 10px; color: #666; min-height: 44px; width: 44px; display: flex; align-items: center; justify-content: center;">
+                    <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="password-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px; display: flex; align-items: center;">
+            <input id="remember_me" name="remember_me" type="checkbox" 
+                style="width: 20px; height: 20px; margin-right: 8px; cursor: pointer;">
+            <label for="remember_me" class="mono text-sm" style="margin: 0; cursor: pointer; user-select: none;">REMEMBER_ME</label>
+        </div>
+
+        <button type="submit"
+            style="width: 100%; background: #333; color: #fff; padding: 14px; border: none; font-family: var(--font-display); font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px;">>
+            AUTHENTICATE</button>
+    </form>
+
+    <div style="margin-top: 20px; font-size: 12px; text-align: center;" class="mono">
+        <a href="/register" style="text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; padding: 8px;">[CREATE_NEW_USER]</a>
     </div>
 </div>
+
 <script>
-    function togglePassword(inputId) {
-        const passwordInput = document.getElementById(inputId);
-        const icon = document.getElementById(inputId + '-icon');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            // Optional: Change icon to "eye-off"
-            icon.innerHTML = `
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-            `;
-        } else {
-            passwordInput.type = 'password';
-            // Change icon back to "eye"
-            icon.innerHTML = `
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            `;
-        }
+function togglePassword(inputId) {
+    const passwordInput = document.getElementById(inputId);
+    const icon = document.getElementById(inputId + '-icon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+        `;
+    } else {
+        passwordInput.type = 'password';
+        icon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        `;
     }
+}
 </script>
 {% endblock %}

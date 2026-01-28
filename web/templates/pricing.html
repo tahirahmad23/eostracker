@@ -1,116 +1,57 @@
 {% extends "base.html" %}
 
-{% block title %}Pricing - EOS Tracker{% endblock %}
+{% block title %}Service Pricing{% endblock %}
 
 {% block content %}
-<div class="bg-neutral-50 py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h1 class="text-3xl font-bold text-neutral-900">Simple, Transparent Pricing</h1>
-            <p class="mt-4 text-lg text-neutral-600">Choose the plan that's right for you</p>
-        </div>
+<div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="border-bottom: 2px solid #000; margin-bottom: 30px;">> SERVICE_TIERS</h2>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <!-- Free Plan -->
-            <div class="bg-white border-2 border-neutral-200 rounded-lg shadow-sm">
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold text-neutral-900">Free</h2>
-                    <p class="mt-2 text-sm text-neutral-600">Perfect for individual engineers</p>
-                    <p class="mt-6">
-                        <span class="text-5xl font-bold text-neutral-900 code-font">$0</span>
-                        <span class="text-base font-medium text-neutral-500">/month</span>
-                    </p>
-                    <a href="/register" class="mt-8 block w-full bg-neutral-900 border border-neutral-900 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-neutral-800 transition">
-                        Get Started
-                    </a>
-                </div>
-                <div class="px-8 py-6 border-t border-neutral-200">
-                    <h3 class="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-4">What's included</h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-start">
-                            <svg class="flex-shrink-0 h-5 w-5 text-accent-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-3 text-sm text-neutral-700">Track up to 3 devices</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="flex-shrink-0 h-5 w-5 text-accent-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-3 text-sm text-neutral-700">Email alerts (365, 180, 90, 30 days)</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="flex-shrink-0 h-5 w-5 text-accent-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-3 text-sm text-neutral-700">PDF reports</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Pro Plan -->
-            <div class="bg-white border-2 border-primary-600 rounded-lg shadow-lg relative">
-                <div class="absolute top-0 right-0 -translate-y-1/2 translate-x-0">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary-600 text-white">
-                        Recommended
-                    </span>
-                </div>
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold text-neutral-900">Pro</h2>
-                    <p class="mt-2 text-sm text-neutral-600">For network engineers managing multiple devices</p>
-                    <p class="mt-6">
-                        <span class="text-5xl font-bold text-neutral-900 code-font">$49</span>
-                        <span class="text-base font-medium text-neutral-500">/month</span>
-                    </p>
-                    {% if current_user %}
-                        {% if current_user.tier == "pro" %}
-                            <a href="/subscription" class="mt-8 block w-full bg-primary-600 border border-primary-600 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-primary-700 transition">
-                                Manage subscription
-                            </a>
-                        {% else %}
-                            <a href="/subscription" class="mt-8 block w-full bg-primary-600 border border-primary-600 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-primary-700 transition">
-                                Upgrade to Pro
-                            </a>
-                        {% endif %}                            
-
-                    {% else %}
-                    <a href="/register" class="mt-8 block w-full bg-primary-600 border border-primary-600 rounded-md py-3 text-sm font-medium text-white text-center hover:bg-primary-700 transition">
-                        Get Started
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="px-8 py-6 border-t border-neutral-200">
-                    <h3 class="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-4">Everything in Free, plus</h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-start">
-                            <svg class="flex-shrink-0 h-5 w-5 text-accent-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-3 text-sm text-neutral-700"><strong>Unlimited</strong> device tracking</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="flex-shrink-0 h-5 w-5 text-accent-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-3 text-sm text-neutral-700">CSV bulk import/export</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="flex-shrink-0 h-5 w-5 text-accent-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-3 text-sm text-neutral-700">Excel bulk import/export</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="flex-shrink-0 h-5 w-5 text-accent-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-3 text-sm text-neutral-700">Priority email alerts</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+    <div class="table-wrapper">
+        <table class="data-table" style="margin-bottom: 40px;">
+            <thead>
+                <tr>
+                    <th style="width: 200px;">FEATURE_SET</th>
+                    <th>TIER: FREE ($0/mo)</th>
+                    <th>TIER: PRO ($49/mo)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-label="FEATURE" class="mono font-bold">DEVICE_LIMIT</td>
+                    <td data-label="FREE" class="mono">MAX_3</td>
+                    <td data-label="PRO" class="mono" style="color: var(--color-active);">UNLIMITED</td>
+                </tr>
+                <tr>
+                    <td data-label="FEATURE" class="mono font-bold">ALERT_PROTOCOL</td>
+                    <td data-label="FREE" class="mono">Email</td>
+                    <td data-label="PRO" class="mono">Email</td>
+                </tr>
+                <tr>
+                    <td data-label="FEATURE" class="mono font-bold">DATA_EXPORT</td>
+                    <td data-label="FREE" class="mono">PDF_ONLY</td>
+                    <td data-label="PRO" class="mono">CSV / EXCEL / PDF</td>
+                </tr>
+                <tr>
+                    <td data-label="FEATURE" class="mono font-bold">ACTION</td>
+                    <td data-label="FREE">
+                        {% if current_user and current_user.tier != "pro" %}
+                        <span class="mono">[CURRENT]</span>
+                        {% elif not current_user %}
+                        <a href="/register" style="background: #333; color: #fff; padding: 8px 10px; text-decoration: none; display: inline-block; border-radius: 4px; font-family: var(--font-display); font-size: 12px;">[INIT_ACCOUNT]</a>
+                        {% endif %}
+                    </td>
+                    <td data-label="PRO">
+                        {% if current_user and current_user.tier == "pro" %}
+                        <span class="mono" style="color: var(--color-active);">[ACTIVE]</span>
+                        {% elif current_user and current_user.tier != "pro" %}
+                        <a href="/subscription"
+                            style="background: var(--color-primary); color: #fff; padding: 8px 10px; text-decoration: none; display: inline-block; border-radius: 4px; font-family: var(--font-display); font-size: 12px;">[UPGRADE]</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+
 </div>
 {% endblock %}

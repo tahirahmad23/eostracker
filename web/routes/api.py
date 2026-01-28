@@ -257,8 +257,9 @@ def api_export_csv(
         result = export_to_excel(current_user.id, db)
     else:        
         result = export_to_csv(current_user.id, db)
-    name = result["name"]
+    
     if result["success"]:
+        name = result["name"]
         return Response(
             content=result["data"],
             media_type=result["media_type"],

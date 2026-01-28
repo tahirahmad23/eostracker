@@ -1,243 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Privacy Policy - EOS Tracker{% endblock %}
+{% block title %}Privacy Policy{% endblock %}
 
 {% block content %}
-<div class="bg-white py-12">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-10 pb-8 border-b border-neutral-200">
-            <h1 class="text-3xl font-bold text-neutral-900 mb-3">Privacy Policy</h1>
-            <p class="text-sm text-neutral-600">Last Updated: <span class="code-font">January 25, 2026</span></p>
-        </div>
+<div class="mono markdown-content mobile-card" style="max-width: 800px; margin: 0 auto; font-size: 14px; line-height: 1.6; padding: 30px;">
+    <h1 style="border-bottom: 2px solid #000; margin-bottom: 20px;">PRIVACY_POLICY</h1>
+    <p>LAST_REVISION: 2026-01-01</p>
 
-        <!-- Content -->
-        <div class="prose prose-lg max-w-none">
-            <div class="space-y-8">
-                <!-- Section 1 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-accent-100 text-accent-700 text-sm font-bold mr-3">1</span>
-                        Information We Collect
-                    </h2>
-                    <div class="pl-11">
-                        <ul class="space-y-4 text-neutral-700">
-                            <li class="flex items-start">
-                                <div class="flex-shrink-0 mt-1">
-                                    <div class="h-2 w-2 rounded-full bg-accent-600 mr-3"></div>
-                                </div>
-                                <div>
-                                    <strong class="text-neutral-900">Personal Information:</strong> We collect your name, email address, and password at the time of registration.
-                                </div>
-                            </li>
-                            <li class="flex items-start">
-                                <div class="flex-shrink-0 mt-1">
-                                    <div class="h-2 w-2 rounded-full bg-accent-600 mr-3"></div>
-                                </div>
-                                <div>
-                                    <strong class="text-neutral-900">Uploaded Data:</strong> We collect information regarding network devices (such as model numbers and support dates) that you upload via CSV, excels or manual entry.
-                                </div>
-                            </li>
-                            <li class="flex items-start">
-                                <div class="flex-shrink-0 mt-1">
-                                    <div class="h-2 w-2 rounded-full bg-accent-600 mr-3"></div>
-                                </div>
-                                <div>
-                                    <strong class="text-neutral-900">Usage Data:</strong> We use Google Analytics to collect information on how you interact with our website (e.g., pages visited, time spent on site).
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
+    <h3 style="margin-top: 30px;">1. DATA_COLLECTION</h3>
+    <p>We collect minimal data required for operation:</p>
+    <ul>
+        <li>Email Address (Identity/Alerts)</li>
+        <li>Hashed Passwords (Auth)</li>
+        <li>Network Inventory Data (User Provided)</li>
+    </ul>
 
-                <!-- Section 2 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-accent-100 text-accent-700 text-sm font-bold mr-3">2</span>
-                        How We Use Your Information
-                    </h2>
-                    <div class="pl-11">
-                        <ul class="space-y-3 text-neutral-700">
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-accent-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>To provide, maintain, and improve the EOS Tracker service.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-accent-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>To manage your account and process payments via Paystack.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-accent-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>To send you critical alerts regarding your hardware support deadlines.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-accent-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>To understand user behavior through Google Analytics to improve the platform.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
+    <h3 style="margin-top: 30px;">2. DATA_RETENTION</h3>
+    <p>Inventory data is retained until account termination. Logs are rotated every 90 days.</p>
 
-                <!-- Section 3 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-accent-100 text-accent-700 text-sm font-bold mr-3">3</span>
-                        Data Storage and Security
-                    </h2>
-                    <div class="pl-11">
-                        <ul class="space-y-4 text-neutral-700">
-                            <li class="flex items-start">
-                                <div class="flex-shrink-0 mt-1">
-                                    <div class="h-2 w-2 rounded-full bg-accent-600 mr-3"></div>
-                                </div>
-                                <div>
-                                    <strong class="text-neutral-900">Hosting:</strong> Your data is stored on secure Virtual Private Servers (VPS).
-                                </div>
-                            </li>
-                            <li class="flex items-start">
-                                <div class="flex-shrink-0 mt-1">
-                                    <div class="h-2 w-2 rounded-full bg-accent-600 mr-3"></div>
-                                </div>
-                                <div>
-                                    <strong class="text-neutral-900">Security:</strong> We use industry-standard encryption and security protocols to protect your personal information. However, no method of transmission over the internet is 100% secure.
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
+    <h3 style="margin-top: 30px;">3. THIRD_PARTY_PROCESSING</h3>
+    <p>Payment processing is handled by Stripe. We do not store credit card details.</p>
 
-                <!-- Section 4 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-accent-100 text-accent-700 text-sm font-bold mr-3">4</span>
-                        Third-Party Service Providers
-                    </h2>
-                    <div class="pl-11">
-                        <p class="text-neutral-700 leading-relaxed mb-4">
-                            We utilize trusted third-party services to operate EOS Tracker:
-                        </p>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-                                <div class="flex items-center mb-2">
-                                    <svg class="h-5 w-5 text-primary-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                    </svg>
-                                    <h3 class="text-sm font-semibold text-neutral-900">Paystack</h3>
-                                </div>
-                                <p class="text-xs text-neutral-600">For payment processing</p>
-                            </div>
-                            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-                                <div class="flex items-center mb-2">
-                                    <svg class="h-5 w-5 text-primary-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                    </svg>
-                                    <h3 class="text-sm font-semibold text-neutral-900">Google Analytics</h3>
-                                </div>
-                                <p class="text-xs text-neutral-600">For tracking website performance</p>
-                            </div>
-                            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-                                <div class="flex items-center mb-2">
-                                    <svg class="h-5 w-5 text-primary-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-                                    </svg>
-                                    <h3 class="text-sm font-semibold text-neutral-900">Hosting Providers</h3>
-                                </div>
-                                <p class="text-xs text-neutral-600">For data storage and hosting</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 5 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-accent-100 text-accent-700 text-sm font-bold mr-3">5</span>
-                        Your Rights
-                    </h2>
-                    <div class="pl-11">
-                        <p class="text-neutral-700 leading-relaxed mb-4">
-                            You have the right to:
-                        </p>
-                        <ul class="space-y-3 text-neutral-700">
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-accent-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>Access the personal data we hold about you.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-accent-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>Correct any inaccuracies in your data.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-accent-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>Request the deletion of your account and associated personal data.</span>
-                            </li>
-                        </ul>
-                        <div class="mt-4 bg-accent-50 border border-accent-200 rounded-lg p-4">
-                            <p class="text-sm text-neutral-700">
-                                To exercise these rights, please contact us at <a href="mailto:tahirahma12@gmail.com" class="text-primary-600 hover:text-primary-700 font-medium transition">tahirahma12@gmail.com</a>
-                            </p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 6 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-accent-100 text-accent-700 text-sm font-bold mr-3">6</span>
-                        Changes to This Policy
-                    </h2>
-                    <div class="pl-11">
-                        <p class="text-neutral-700 leading-relaxed">
-                            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.
-                        </p>
-                    </div>
-                </section>
-
-                <!-- Section 7 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-accent-100 text-accent-700 text-sm font-bold mr-3">7</span>
-                        Contact Us
-                    </h2>
-                    <div class="pl-11">
-                        <p class="text-neutral-700 leading-relaxed">
-                            If you have any questions about this Privacy Policy, please contact Ahmad Tahir at <a href="mailto:tahirahma12@gmail.com" class="text-primary-600 hover:text-primary-700 font-medium transition">tahirahma12@gmail.com</a>
-                        </p>
-                    </div>
-                </section>
-            </div>
-        </div>
-
-        <!-- Footer Notice -->
-        <div class="mt-12 pt-8 border-t border-neutral-200">
-            <div class="bg-accent-50 border border-accent-200 rounded-lg p-6">
-                <div class="flex items-start">
-                    <svg class="h-6 w-6 text-accent-600 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <div>
-                        <h3 class="text-sm font-semibold text-neutral-900 mb-1">Your Privacy Matters</h3>
-                        <p class="text-sm text-neutral-700">
-                            We are committed to protecting your personal information and being transparent about how we use it. If you have concerns about your privacy, please don't hesitate to reach out.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div style="margin-top: 50px; border-top: 1px solid #ddd; padding-top: 10px; color: #666;">
+        END OF DOCUMENT
     </div>
 </div>
 {% endblock %}

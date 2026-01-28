@@ -3,6 +3,11 @@ FastAPI Web Application - Main Entry Point
 Integrates all modules into a complete web application
 """
 
+from logging_config import configure_logging
+
+# Configure logging as early as possible so all module loggers inherit it
+configure_logging()
+
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -33,6 +38,12 @@ app = FastAPI(
     description="End-of-Support tracking for network infrastructure",
     version="1.0.0"
 )
+
+# Safe request/exception logging (no headers, no querystring, no body)
+from logging_config import request_access_log_middleware, request_logging_middleware
+
+app.middleware("http")(request_logging_middleware)
+app.middleware("http")(request_access_log_middleware)
 
 # Add session middleware for flash messages
 app.add_middleware(

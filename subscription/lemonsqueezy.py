@@ -13,7 +13,9 @@ All transactions are processed in USD globally.
 import os
 import requests
 from typing import Dict
+import logging
 
+logger = logging.getLogger(__name__)
 
 class LemonSqueezyClient:
     """
@@ -38,12 +40,14 @@ class LemonSqueezyClient:
         """
         self.api_key = os.getenv("LEMONSQUEEZY_API_KEY")
         if not self.api_key:
+            logger.error("LEMONSQUEEZY_API_KEY not configured")
             raise ValueError("LEMONSQUEEZY_API_KEY environment variable not set")
         
         self.store_id = os.getenv("LEMONSQUEEZY_STORE_ID")
         self.variant_id = os.getenv("LEMONSQUEEZY_VARIANT_ID")  # Pro plan variant ID
         
         if not self.store_id or not self.variant_id:
+            logger.error("LEMONSQUEEZY_STORE_ID/LEMONSQUEEZY_VARIANT_ID not configured")
             raise ValueError("LEMONSQUEEZY_STORE_ID and LEMONSQUEEZY_VARIANT_ID must be set")
         
         # Standard headers for all requests
@@ -91,6 +95,7 @@ class LemonSqueezyClient:
                 print(result["data"]["checkout_url"])
         """
         try:
+            logger.debug("Creating Lemon Squeezy checkout")
             # Create checkout with Lemon Squeezy API
             payload = {
                 "data": {
@@ -144,6 +149,7 @@ class LemonSqueezyClient:
                 checkout_url = data["data"]["attributes"]["url"]
                 checkout_id = data["data"]["id"]
                 
+                logger.info("Lemon Squeezy checkout created")
                 return {
                     "success": True,
                     "data": {
@@ -154,17 +160,20 @@ class LemonSqueezyClient:
             else:
                 error_data = response.json()
                 error_message = error_data.get("errors", [{}])[0].get("detail", "Unknown error")
+                logger.warning("Lemon Squeezy API error during checkout creation", extra={"status_code": response.status_code})
                 return {
                     "success": False,
                     "error": f"Lemon Squeezy API error: {error_message}"
                 }
         
         except requests.RequestException as e:
+            logger.exception("Failed to create Lemon Squeezy checkout")
             return {
                 "success": False,
                 "error": f"Failed to create checkout: {str(e)}"
             }
         except Exception as e:
+            logger.exception("Unexpected error creating Lemon Squeezy checkout")
             return {
                 "success": False,
                 "error": f"Unexpected error: {str(e)}"
@@ -190,6 +199,7 @@ class LemonSqueezyClient:
                 print("Subscription cancelled")
         """
         try:
+            logger.debug("Cancelling Lemon Squeezy subscription")
             # Cancel subscription using PATCH request
             payload = {
                 "data": {
@@ -209,6 +219,7 @@ class LemonSqueezyClient:
             )
             
             if response.status_code == 200:
+                logger.info("Lemon Squeezy subscription cancellation requested")
                 return {
                     "success": True,
                     "data": {
@@ -218,17 +229,20 @@ class LemonSqueezyClient:
             else:
                 error_data = response.json()
                 error_message = error_data.get("errors", [{}])[0].get("detail", "Unknown error")
+                logger.warning("Lemon Squeezy API error during cancellation", extra={"status_code": response.status_code})
                 return {
                     "success": False,
                     "error": f"Lemon Squeezy API error: {error_message}"
                 }
         
         except requests.RequestException as e:
+            logger.exception("Failed to cancel Lemon Squeezy subscription")
             return {
                 "success": False,
                 "error": f"Failed to cancel subscription: {str(e)}"
             }
         except Exception as e:
+            logger.exception("Unexpected error cancelling Lemon Squeezy subscription")
             return {
                 "success": False,
                 "error": f"Unexpected error: {str(e)}"
@@ -245,6 +259,7 @@ class LemonSqueezyClient:
             Result containing subscription details or error
         """
         try:
+            logger.debug("Fetching Lemon Squeezy subscription")
             response = requests.get(
                 f"{self.BASE_URL}/subscriptions/{subscription_id}",
                 headers=self.headers,
@@ -253,6 +268,7 @@ class LemonSqueezyClient:
             
             if response.status_code == 200:
                 data = response.json()
+                logger.info("Lemon Squeezy subscription fetched")
                 return {
                     "success": True,
                     "data": data["data"]
@@ -260,17 +276,20 @@ class LemonSqueezyClient:
             else:
                 error_data = response.json()
                 error_message = error_data.get("errors", [{}])[0].get("detail", "Unknown error")
+                logger.warning("Lemon Squeezy API error fetching subscription", extra={"status_code": response.status_code})
                 return {
                     "success": False,
                     "error": f"Lemon Squeezy API error: {error_message}"
                 }
         
         except requests.RequestException as e:
+            logger.exception("Failed to fetch Lemon Squeezy subscription")
             return {
                 "success": False,
                 "error": f"Failed to fetch subscription: {str(e)}"
             }
         except Exception as e:
+            logger.exception("Unexpected error fetching Lemon Squeezy subscription")
             return {
                 "success": False,
                 "error": f"Unexpected error: {str(e)}"

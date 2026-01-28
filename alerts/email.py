@@ -9,7 +9,9 @@ from datetime import datetime
 import resend
 from sqlalchemy.orm import Session
 from html import escape as html_escape
+import logging
 
+logger = logging.getLogger(__name__)
 
 # Type alias for Result pattern
 Result = Dict[str, Any]
@@ -319,9 +321,11 @@ def send_alert_email(
     """
     try:
         if not devices:
+            logger.warning("Alert email not sent: no devices provided")
             return {"success": False, "error": "No devices provided for alert"}
         
         if not RESEND_API_KEY:
+            logger.warning("Alert email not sent: RESEND_API_KEY not configured")
             return {"success": False, "error": "RESEND_API_KEY not configured"}
         
         # Create email content
@@ -350,10 +354,14 @@ def send_alert_email(
         }
         
         email = resend.Emails.send(params)
-        
+        logger.info(
+            "Alert email sent",
+            extra={"device_count": len(devices), "alert_type": str(alert_type)},
+        )
         return {"success": True, "data": {"id": email.get("id")}}
     
     except Exception as e:
+        logger.exception("Failed to send alert email")
         return {
             "success": False,
             "error": f"Failed to send alert email: {str(e)}"
@@ -380,6 +388,7 @@ def send_welcome_email(user_email: str, user_name: str) -> Result:
     """
     try:
         if not RESEND_API_KEY:
+            logger.warning("Welcome email not sent: RESEND_API_KEY not configured")
             return {"success": False, "error": "RESEND_API_KEY not configured"}
         
         # Create email content
@@ -394,10 +403,11 @@ def send_welcome_email(user_email: str, user_name: str) -> Result:
         }
         
         email = resend.Emails.send(params)
-        
+        logger.info("Welcome email sent")
         return {"success": True, "data": {"id": email.get("id")}}
     
     except Exception as e:
+        logger.exception("Failed to send welcome email")
         return {
             "success": False,
             "error": f"Failed to send welcome email: {str(e)}"

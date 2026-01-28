@@ -1,176 +1,152 @@
 {% extends "base.html" %}
 
-{% block title %}My Devices - EOS Tracker{% endblock %}
+{% block title %}My Inventory - EOS Tracker{% endblock %}
 
 {% block content %}
-<div class="py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <div>
-                <h1 class="text-2xl font-semibold text-neutral-900">My Tracked Devices</h1>
-                <p class="mt-1 text-sm text-neutral-600 code-font">
-                    {% if current_user.tier == "free" %}
-                    Free tier: {{ tracked_devices|length }} / 3 devices
-                    {% else %}
-                    Pro tier: {{ tracked_devices|length }} devices
-                    {% endif %}
-                </p>
-            </div>
-            <div class="mt-4 sm:mt-0 flex space-x-3">
-                {% if can_add_more %}
-                <a href="/tracking/add" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
-                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    Add Device
-                </a>
+<div style="max-width: 1000px; margin: 0 auto;">
+    <!-- Header Section -->
+    <div class="mobile-card hide-mobile" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding: 0;">
+        <div>
+            <h2>> ASSET_INVENTORY</h2>
+            <p class="mono text-sm">
+                {% if current_user.tier == "free" %}
+                LICENSE_TIER: FREE (USAGE: {{ tracked_devices|length }} / 3 SLOTS)
                 {% else %}
-                <span class="inline-flex items-center px-4 py-2 border border-neutral-300 shadow-sm text-sm font-medium rounded-md text-neutral-400 bg-neutral-100 cursor-not-allowed">
-                    Limit Reached
-                </span>
+                LICENSE_TIER: PRO (USAGE: {{ tracked_devices|length }} DEVICES)
                 {% endif %}
-                
-                <form action="/api/tracking/import" method="POST" enctype="multipart/form-data" id="importForm">
-                    <input type="file" name="file" id="fileInput" class="hidden" accept=".csv, .xlsx, .xls" onchange="document.getElementById('importForm').submit()">
-    
-                    <label for="fileInput" class="cursor-pointer inline-flex items-center px-4 py-2 border border-neutral-300 shadow-sm text-sm font-medium rounded-md text-neutral-700 bg-white hover:bg-neutral-50 transition">
-                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    Import
-                    </label>
-                </form>
+            </p>
+        </div>
 
-                <div class="relative inline-block text-left">
-                    <button type="button" onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="inline-flex items-center px-4 py-2 border border-neutral-300 shadow-sm text-sm font-medium rounded-md text-neutral-700 bg-white hover:bg-neutral-50 transition" id="menu-button" aria-expanded="true" aria-haspopup="true">
-                        <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                        Export
-                        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                  
-                    <div id="exportMenu" class="hidden origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
-                        <div class="py-1" role="none">
-                            <a href="/api/tracking/export?format=csv" class="text-neutral-700 block px-4 py-2 text-sm hover:bg-neutral-50" role="menuitem" tabindex="-1" id="menu-item-0" onclick="document.getElementById('exportMenu').classList.add('hidden')">
-                                Export as CSV
-                            </a>
-                            <a href="/api/tracking/export?format=excel" class="text-neutral-700 block px-4 py-2 text-sm hover:bg-neutral-50" role="menuitem" tabindex="-1" id="menu-item-1" onclick="document.getElementById('exportMenu').classList.add('hidden')">
-                                Export as Excel
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-        
-        {% if tracked_devices %}
-        <div class="bg-white border border-neutral-200 rounded-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-neutral-200 data-table">
-                    <thead class="bg-neutral-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Device</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">EOS Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Days Until EOS</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="relative px-6 py-3">
-                                <span class="sr-only">Actions</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-neutral-200">
-                        {% for device in tracked_devices %}
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-neutral-900 code-font">
-                                    {{ device.custom_name or (device.device.vendor + " " + device.device.model) }}
-                                </div>
-                                {% if device.custom_name %}
-                                <div class="text-xs text-neutral-500 code-font">{{ device.device.vendor }} {{ device.device.model }}</div>
-                                {% endif %}
-                                {% if device.notes %}
-                                <div class="text-xs text-neutral-400 mt-1">{{ device.notes }}</div>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                                {{ device.device.device_type }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900 code-font">
-                                {{ device.device.eos_date }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm font-medium code-font {% if device.device.days_until_eos < 0 %}text-red-600{% elif device.device.days_until_eos < 90 %}text-yellow-600{% else %}text-accent-600{% endif %}">
-                                    {{ device.device.days_until_eos }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                {% if device.device.status == "active" %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-accent-50 text-accent-700 border border-accent-200">Active</span>
-                                {% elif device.device.status == "approaching" %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">Approaching</span>
-                                {% else %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">EOS</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <form action="/tracking/{{ device.id }}/remove" method="POST" onsubmit="return confirm('Are you sure you want to remove this device?');" class="inline">
-                                    <button type="submit" class="text-red-600 hover:text-red-700 transition">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            {% if can_add_more %}
+            <a href="/tracking/add"
+                style="background: var(--color-active); color: #fff; padding: 8px 15px; font-family: var(--font-display); font-size: 13px; text-decoration: none; border-radius: 4px; display: inline-block;">[+
+                ADD_DEVICE]</a>
+            {% else %}
+            <span
+                style="background: #ddd; color: #888; padding: 8px 15px; font-family: var(--font-display); font-size: 13px; border-radius: 4px;">[LIMIT_REACHED]</span>
+            {% endif %}
+
+            <button onclick="document.getElementById('importUpload').click()"
+                style="background: #fff; border: 1px solid #333; color: #333; padding: 8px 15px; font-family: var(--font-display); font-size: 13px; cursor: pointer; border-radius: 4px;">[
+                IMPORT_CSV ]</button>
+            <form action="/api/tracking/import" method="POST" enctype="multipart/form-data" id="importForm"
+                style="display:none;">
+                <input type="file" name="file" id="importUpload" accept=".csv, .xlsx"
+                    onchange="document.getElementById('importForm').submit()">
+            </form>
+
+            <a href="/api/tracking/export?format=csv"
+                style="background: #fff; border: 1px solid #333; color: #333; padding: 8px 15px; font-family: var(--font-display); font-size: 13px; text-decoration: none; border-radius: 4px; display: inline-block;">[
+                EXPORT_CSV ]</a>
         </div>
-        {% else %}
-        <div class="text-center py-16 bg-white border border-neutral-200 rounded-lg">
-            <svg class="mx-auto h-16 w-16 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3" />
-            </svg>
-            <h3 class="mt-4 text-base font-medium text-neutral-900">No devices tracked</h3>
-            <p class="mt-2 text-sm text-neutral-600">Get started by adding your first device.</p>
-            <div class="mt-6">
-                <a href="/tracking/add" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
-                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    Add Device
-                </a>
-            </div>
-        </div>
-        {% endif %}
-        
-        {% if not can_add_more and current_user.tier == "free" %}
-        <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-yellow-800">
-                        You've reached your device tracking limit. <a href="/subscription" class="underline hover:text-yellow-900 transition">Upgrade to Pro</a> for unlimited device tracking.
-                    </p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
-</div>
 
-<script>
-    window.addEventListener('click', function(e) {
-        var menu = document.getElementById('exportMenu');
-        var button = document.getElementById('menu-button');
-        if (!menu.classList.contains('hidden') && !menu.contains(e.target) && !button.contains(e.target)) {
-            menu.classList.add('hidden');
-        }
-    });
-</script>
+    <!-- Mobile Header -->
+    <div class="show-mobile mobile-card" style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 8px;">> ASSETS</h2>
+        <p class="mono text-sm" style="margin-bottom: 12px;">
+            {% if current_user.tier == "free" %}
+            FREE: {{ tracked_devices|length }}/3 SLOTS
+            {% else %}
+            PRO: {{ tracked_devices|length }} DEVICES
+            {% endif %}
+        </p>
+        
+        <!-- Mobile action buttons -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            {% if can_add_more %}
+            <a href="/tracking/add" style="flex: 1; min-width: 120px; background: var(--color-active); color: #fff; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; text-decoration: none; border-radius: 4px;">
+                + ADD
+            </a>
+            {% else %}
+            <span style="flex: 1; min-width: 120px; background: #ddd; color: #888; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; border-radius: 4px;">
+                LIMIT
+            </span>
+            {% endif %}
+            
+            <button onclick="document.getElementById('importUpload').click()" style="flex: 1; min-width: 100px; background: #fff; border: 1px solid #333; color: #333; padding: 12px; font-family: var(--font-display); font-size: 14px; cursor: pointer; border-radius: 4px;">
+                IMPORT
+            </button>
+            
+            <a href="/api/tracking/export?format=csv" style="flex: 1; min-width: 100px; background: #fff; border: 1px solid #333; color: #333; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; text-decoration: none; border-radius: 4px;">
+                EXPORT
+            </a>
+        </div>
+    </div>
+
+    {% if tracked_devices %}
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 250px;">ASSET_TAG (+MODEL)</th>
+                    <th>TYPE</th>
+                    <th>EOS_DATE</th>
+                    <th>T-MINUS</th>
+                    <th>STATUS</th>
+                    <th>OPS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in tracked_devices %}
+                <tr>
+                    <td data-label="ASSET">
+                        <div class="mono font-bold">{{ device.custom_name or (device.device.vendor + " " +
+                            device.device.model) }}</div>
+                        {% if device.custom_name %}
+                        <div class="mono text-secondary text-sm" style="margin-top: 4px;">> {{ device.device.vendor }} {{ device.device.model }}
+                        </div>
+                        {% endif %}
+                        {% if device.notes %}
+                        <div class="mono text-secondary text-xs"
+                            style="margin-top: 4px; border-left: 2px solid #ddd; padding-left: 5px;"># {{ device.notes
+                            }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td data-label="TYPE" class="mono text-sm">{{ device.device.device_type }}</td>
+                    <td data-label="EOS DATE" class="mono">{{ device.device.eos_date }}</td>
+                    <td data-label="REMAINING" class="mono">
+                        <span class="{% if device.device.days_until_eos < 0 %}status-eos{% endif %}" style="font-weight: {% if device.device.days_until_eos < 0 %}bold{% else %}normal{% endif %};">
+                            {{ device.device.days_until_eos }}d
+                        </span>
+                    </td>
+                    <td data-label="STATUS">
+                        {% if device.device.status == "active" %}
+                        <span class="badge badge-active">OK</span>
+                        {% elif device.device.status == "approaching" %}
+                        <span class="badge badge-warn">WARN</span>
+                        {% else %}
+                        <span class="badge badge-crit">EOS</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="ACTION">
+                        <form action="/tracking/{{ device.id }}/remove" method="POST"
+                            onsubmit="return confirm('CONFIRM REMOVAL: {{ device.custom_name or device.device.model }}?');" style="margin: 0;">
+                            <button type="submit"
+                                style="background: none; border: none; color: var(--color-crit); cursor: pointer; font-family: var(--font-display); font-size: 12px; text-decoration: underline; padding: 4px; min-height: 44px;">[REMOVE]</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="mobile-card" style="padding: 50px; background: #fafafa; border: 1px solid #ddd; text-align: center;">
+        <p class="mono">[INVENTORY_EMPTY]</p>
+        <p class="mono text-sm text-secondary">NO ASSETS CURRENTLY TRACKED.</p>
+        <div style="margin-top: 20px;">
+            <a href="/tracking/add" style="text-decoration: underline; font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; padding: 8px;">> INITIATE_PROVISIONING</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not can_add_more and current_user.tier == "free" %}
+    <div class="sys-log error" style="margin-top: 20px;">
+        [QUOTA_EXCEEDED]: FREE TIER LIMIT REACHED (3/3). UPGRADE REQUIRED FOR ADDITIONAL CAPACITY.
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

@@ -1,138 +1,112 @@
 {% extends "base.html" %}
 
-{% block title %}Search Devices - EOS Tracker{% endblock %}
+{% block title %}Query Database - EOS Tracker{% endblock %}
 
 {% block content %}
-<div class="bg-white py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Search Header -->
-        <div class="mb-8">
-            <h1 class="text-2xl font-semibold text-neutral-900">Device Database</h1>
-            <p class="mt-1 text-sm text-neutral-600">Search our comprehensive database of network equipment EOS dates</p>
-        </div>
+<div class="grid-sidebar">
+    <!-- Sidebar / Query Parameters -->
+    <div>
+        <h2>> QUERY_PARAMS</h2>
+        <form action="/search" method="GET" class="mobile-card"
+            style="background: #fafafa; padding: 20px; border: 1px solid var(--border-color);">
+            <div style="margin-bottom: 20px;">
+                <label class="mono text-sm" style="display: block; margin-bottom: 4px;">KEYWORD_SEARCH:</label>
+                <input type="text" name="q" value="{{ query }}" placeholder="*">
+            </div>
 
-        <!-- Search Form -->
-        <form action="/search" method="GET" class="mb-8 bg-neutral-50 border border-neutral-200 rounded-lg p-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="md:col-span-2">
-                    <label for="search-query" class="block text-xs font-medium text-neutral-700 mb-1">Search</label>
-                    <input id="search-query" type="text" name="q" value="{{ query }}" placeholder="Vendor or model..." class="block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
-                </div>
-                
-                <div>
-                    <label for="vendor-select" class="block text-xs font-medium text-neutral-700 mb-1">Vendor</label>
-                    <select id="vendor-select" name="vendor" class="block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
-                        <option value="">All Vendors</option>
-                        {% for vendor in vendors %}
-                        <option value="{{ vendor }}" {% if selected_vendor == vendor %}selected{% endif %}>{{ vendor }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div>
-                    <label for="type-select" class="block text-xs font-medium text-neutral-700 mb-1">Device Type</label>
-                    <select id="type-select" name="device_type" class="block w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
-                        <option value="">All Types</option>
-                        {% for type in device_types %}
-                        <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+            <div style="margin-bottom: 20px;">
+                <label class="mono text-sm" style="display: block; margin-bottom: 4px;">FILTER_VENDOR:</label>
+                <select name="vendor">
+                    <option value="">[ALL_VENDORS]</option>
+                    {% for vendor in vendors %}
+                    <option value="{{ vendor }}" {% if selected_vendor==vendor %}selected{% endif %}>{{ vendor }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
-            
-            <div class="mt-4 flex justify-end">
-                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition">
-                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                    </svg>
-                    Search
-                </button>
+
+            <div style="margin-bottom: 20px;">
+                <label class="mono text-sm" style="display: block; margin-bottom: 4px;">FILTER_TYPE:</label>
+                <select name="device_type">
+                    <option value="">[ALL_TYPES]</option>
+                    {% for type in device_types %}
+                    <option value="{{ type }}" {% if selected_type==type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
             </div>
+
+            <button type="submit"
+                style="width: 100%; background: #333; color: #fff; padding: 12px; border: none; font-family: var(--font-display); cursor: pointer; border-radius: 4px;">>
+                EXECUTE_QUERY</button>
         </form>
+    </div>
 
-        <!-- Results Count -->
-        <div class="mb-4">
-            <p class="text-sm text-neutral-600 code-font">{{ total }} devices found</p>
+    <!-- Main Results -->
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;">
+            <h2 style="margin: 0;">> RESULTS_BUFFER</h2>
+            <span class="mono text-sm">TOTAL_RECORDS: {{ total }}</span>
         </div>
 
-        <!-- Results Grid -->
         {% if devices %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for device in devices %}
-            <div class="card-hover bg-white border border-neutral-200 rounded-lg p-6">
-                <h3 class="text-base font-semibold text-neutral-900 code-font">{{ device.vendor }} {{ device.model }}</h3>
-                <p class="mt-1 text-sm text-neutral-500">{{ device.device_type }}</p>
-                
-                <div class="mt-4 pt-4 border-t border-neutral-200 space-y-2">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-neutral-500">EOS Date</span>
-                        <span class="font-medium text-neutral-900 code-font">{{ device.eos_date }}</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-neutral-500">Days Until EOS</span>
-                        <span class="font-medium code-font {% if device.days_until_eos < 0 %}text-red-600{% elif device.days_until_eos < 90 %}text-yellow-600{% else %}text-accent-600{% endif %}">
-                            {{ device.days_until_eos }}
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="mt-4 flex items-center justify-between">
-                    {% if device.status == "active" %}
-                    <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-accent-50 text-accent-700 border border-accent-200">Active</span>
-                    {% elif device.status == "approaching" %}
-                    <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">Approaching EOS</span>
-                    {% else %}
-                    <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">End of Support</span>
-                    {% endif %}
-                    
-                    <a href="/device/{{ device.slug }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium transition">
-                        Details →
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 150px;">DEVICE_MODEL</th>
+                        <th>VENDOR</th>
+                        <th>TYPE</th>
+                        <th>EOS_DATE</th>
+                        <th>REMAINING_DAYS</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td data-label="MODEL">
+                            <a href="/device/{{ device.slug }}" style="font-weight: bold; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center;">{{ device.model }}</a>
+                        </td>
+                        <td data-label="VENDOR" class="mono text-sm">{{ device.vendor }}</td>
+                        <td data-label="TYPE" class="mono text-sm">{{ device.device_type }}</td>
+                        <td data-label="EOS DATE" class="mono">{{ device.eos_date }}</td>
+                        <td data-label="REMAINING" class="mono" style="text-align: right;">{{ device.days_until_eos }}d</td>
+                        <td data-label="STATUS">
+                            {% if device.status == "active" %}
+                            <span class="badge badge-active">OK</span>
+                            {% elif device.status == "approaching" %}
+                            <span class="badge badge-warn">WARN</span>
+                            {% else %}
+                            <span class="badge badge-crit">EOS</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <!-- Pagination -->
         {% if pages > 1 %}
-        <div class="mt-8 flex justify-center">
-            <nav class="inline-flex -space-x-px rounded-md shadow-sm">
-                {% if page > 1 %}
-                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page - 1 }}" class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition">
-                    Previous
-                </a>
-                {% endif %}
-                
-                {% for p in range(1, pages + 1) %}
-                    {% if p == page %}
-                    <span class="relative inline-flex items-center px-4 py-2 border border-neutral-300 bg-primary-50 text-sm font-medium text-primary-700">
-                        {{ p }}
-                    </span>
-                    {% elif p <= 3 or p > pages - 3 or (p >= page - 1 and p <= page + 1) %}
-                    <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ p }}" class="relative inline-flex items-center px-4 py-2 border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition">
-                        {{ p }}
-                    </a>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if page < pages %}
-                <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page + 1 }}" class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition">
-                    Next
-                </a>
-                {% endif %}
-            </nav>
+        <div style="margin-top: 20px; text-align: center; font-family: var(--font-display); font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap;">
+            {% if page > 1 %}
+            <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page - 1 }}" 
+               style="padding: 8px 16px; min-height: 44px; display: inline-flex; align-items: center;">[PREV]</a>
+            {% endif %}
+
+            <span style="margin: 0 10px;">PAGE {{ page }} OF {{ pages }}</span>
+
+            {% if page < pages %}
+            <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page + 1 }}"
+               style="padding: 8px 16px; min-height: 44px; display: inline-flex; align-items: center;">[NEXT]</a>
+            {% endif %}
         </div>
         {% endif %}
 
         {% else %}
-        <div class="text-center py-16 bg-neutral-50 border border-neutral-200 rounded-lg">
-            <svg class="mx-auto h-12 w-12 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
-            <p class="mt-4 text-neutral-600">No devices found matching your search criteria.</p>
-            <a href="/search" class="mt-4 inline-block text-primary-600 hover:text-primary-700 font-medium transition">
-                Clear filters
-            </a>
+        <div class="mobile-card" style="text-align: center; padding: 50px; background: #fafafa; border: 1px solid #eee;">
+            <p class="mono">[NULL_SET] NO_MATCHING_RECORDS_FOUND</p>
+            <a href="/search" style="text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; padding: 8px; margin-top: 12px;">[RESET_FILTERS]</a>
         </div>
         {% endif %}
     </div>

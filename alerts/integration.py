@@ -47,7 +47,7 @@ def trigger_immediate_alert_check(user_id: int) -> Optional[dict]:
     scheduler_enabled = os.getenv("SCHEDULER_ENABLED", "False").lower() == "true"
 
     if not scheduler_enabled:
-        logger.debug(f"Alert check skipped for user {user_id} (scheduler disabled)")
+        logger.debug("Alert check skipped (scheduler disabled)")
         return None
     
     try:
@@ -57,13 +57,13 @@ def trigger_immediate_alert_check(user_id: int) -> Optional[dict]:
         result = check_user_alerts_now(user_id)
         
         if result["success"] and result["data"] > 0:
-            logger.info(f"✓ Sent {result['data']} immediate alert(s) to user {user_id}")
+            logger.info(f"✓ Sent {result['data']} immediate alert(s)")
         
         return result
     
     except Exception as e:
         # Log error but don't fail the request
-        logger.error(f"Failed to check immediate alerts for user {user_id}: {str(e)}")
+        logger.exception("Failed to check immediate alerts")
         return None
 
 

@@ -10,9 +10,11 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 import os
+import logging
 
 from database.models import Base
 
+logger = logging.getLogger(__name__)
 
 # Database URL from environment variable
 DATABASE_URL = os.getenv(
@@ -80,11 +82,13 @@ def init_db() -> Dict[str, Any]:
     """
     try:
         Base.metadata.create_all(bind=engine)
+        logger.info("Database tables initialized")
         return {
             "success": True,
             "data": "Database tables created successfully"
         }
     except Exception as e:
+        logger.exception("Failed to initialize database tables")
         return {
             "success": False,
             "error": f"Failed to initialize database: {str(e)}"
@@ -101,12 +105,15 @@ def drop_all_tables() -> Dict[str, Any]:
         Result dictionary with success status
     """
     try:
+        logger.warning("Dropping all database tables")
         Base.metadata.drop_all(bind=engine)
+        logger.info("Database tables dropped")
         return {
             "success": True,
             "data": "All tables dropped successfully"
         }
     except Exception as e:
+        logger.exception("Failed to drop database tables")
         return {
             "success": False,
             "error": f"Failed to drop tables: {str(e)}"
@@ -130,6 +137,7 @@ def check_connection() -> Dict[str, Any]:
         # Try to execute a simple query
         db.execute(text("SELECT 1"))
         db.close()
+        logger.info("Database connection check succeeded")
         return {
             "success": True,
             "data": {
@@ -138,6 +146,7 @@ def check_connection() -> Dict[str, Any]:
             }
         }
     except Exception as e:
+        logger.exception("Database connection check failed")
         return {
             "success": False,
             "error": f"Database connection failed: {str(e)}"

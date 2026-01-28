@@ -1,58 +1,43 @@
 {% extends "base.html" %}
 
-{% block title %}Profile - EOS Tracker{% endblock %}
+{% block title %}User Profile - EOS Tracker{% endblock %}
 
 {% block content %}
-<div class="py-10">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <header class="mb-8">
-            <h1 class="text-2xl font-semibold text-neutral-900">User Profile</h1>
-        </header>
-        
-        <div class="bg-white border border-neutral-200 rounded-lg shadow-sm">
-            <div class="px-6 py-6">
-                <dl class="space-y-5">
-                    <div>
-                        <dt class="text-sm font-medium text-neutral-500">Full Name</dt>
-                        <dd class="mt-1 text-base text-neutral-900">{{ current_user.full_name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-neutral-500">Email</dt>
-                        <dd class="mt-1 text-base text-neutral-900 code-font">{{ current_user.email }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-neutral-500">Account Tier</dt>
-                        
-                            {% if current_user.tier == "pro" %}
-                            <dd class="mt-1">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-primary-100 text-primary-700 border border-primary-200">
-                                Pro
-                            </span>
-                            </dd>
-                            {% else %}
-                            <dd class="mt-1">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-neutral-100 text-neutral-700 border border-neutral-200">
-                                Free
-                            </span>
-                            </dd>
-                            <dd class="mt-1">
-                            <span>
-                            <form action="/subscription/checkout" method="POST">
-                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
-                                    Upgrade Now
-                                </button>
-                            </form>
-                            </span>
-                            </dd>
-                            {% endif %}
-                        
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-neutral-500">Member Since</dt>
-                        <dd class="mt-1 text-base text-neutral-900">{{ current_user.created_at.strftime('%B %d, %Y') }}</dd>
-                    </div>
-                </dl>
-            </div>
+<div class="mobile-card"
+    style="max-width: 600px; margin: 0 auto; border: 1px solid var(--border-color); padding: 30px; background: #fafafa;">
+    <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 25px;">> USER_CONFIGURATION</h3>
+
+    <dl class="prop-list">
+        <dt>FULL_NAME</dt>
+        <dd>{{ current_user.full_name }}</dd>
+
+        <dt>EMAIL_ADDRESS</dt>
+        <dd class="mono">{{ current_user.email }}</dd>
+
+        <dt>ACCOUNT_CREATED</dt>
+        <dd class="mono">{{ current_user.created_at.strftime('%Y-%m-%d') }}</dd>
+
+        <dt>LICENSE_TIER</dt>
+        <dd>
+            {% if current_user.tier == "pro" %}
+            <span class="badge badge-active">PRO_LICENSE</span>
+            {% else %}
+            <span class="badge">FREE_TIER</span>
+            {% endif %}
+        </dd>
+    </dl>
+
+    <div style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+        <h4 class="mono text-sm" style="margin-bottom: 12px;">ACTIONS:</h4>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="/subscription"
+                style="background: #333; color: #fff; padding: 12px 15px; font-size: 13px; text-decoration: none; border-radius: 4px; font-family: var(--font-display); display: inline-block;">[MANAGE_SUBSCRIPTION]</a>
+
+            <form action="/logout" method="POST" style="display:inline; margin: 0;">
+                <button type="submit"
+                    style="background: #fff; border: 1px solid #333; color: #333; padding: 12px 15px; font-family: var(--font-display); font-size: 13px; cursor: pointer; border-radius: 4px;">[
+                    TERMINATE_SESSION ]</button>
+            </form>
         </div>
     </div>
 </div>

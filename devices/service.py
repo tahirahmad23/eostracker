@@ -9,10 +9,12 @@ from typing import Any
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
+import logging
 
 from database.models import Device
 from devices.utils import calculate_days_until_eos, get_device_status
 
+logger = logging.getLogger(__name__)
 
 # Type alias for Result pattern
 Result = dict[str, Any]
@@ -93,7 +95,8 @@ def search_devices(
         
         # Convert to DeviceInfo format
         device_list = [_device_to_info(device) for device in devices]
-        
+
+        logger.debug("Device search completed")
         return {
             "success": True,
             "data": {
@@ -105,6 +108,7 @@ def search_devices(
         }
     
     except Exception as e:
+        logger.exception("Device search failed")
         return {
             "success": False,
             "error": f"Search failed: {str(e)}"
@@ -132,6 +136,7 @@ def get_device(device_id: int, db: Session) -> Result:
         device = db.query(Device).filter(Device.id == device_id).first()
         
         if not device:
+            logger.debug("Device not found by id")
             return {
                 "success": False,
                 "error": f"Device with ID {device_id} not found"
@@ -143,6 +148,7 @@ def get_device(device_id: int, db: Session) -> Result:
         }
     
     except Exception as e:
+        logger.exception("Failed to retrieve device by id")
         return {
             "success": False,
             "error": f"Failed to retrieve device: {str(e)}"
@@ -169,6 +175,7 @@ def get_device_by_slug(slug: str, db: Session) -> Result:
         device = db.query(Device).filter(Device.slug == slug).first()
         
         if not device:
+            logger.debug("Device not found by slug")
             return {
                 "success": False,
                 "error": f"Device with slug '{slug}' not found"
@@ -180,6 +187,7 @@ def get_device_by_slug(slug: str, db: Session) -> Result:
         }
     
     except Exception as e:
+        logger.exception("Failed to retrieve device by slug")
         return {
             "success": False,
             "error": f"Failed to retrieve device: {str(e)}"
@@ -212,6 +220,7 @@ def get_vendors(db: Session) -> Result:
         }
     
     except Exception as e:
+        logger.exception("Failed to retrieve vendors")
         return {
             "success": False,
             "error": f"Failed to retrieve vendors: {str(e)}"
@@ -244,6 +253,7 @@ def get_device_types(db: Session) -> Result:
         }
     
     except Exception as e:
+        logger.exception("Failed to retrieve device types")
         return {
             "success": False,
             "error": f"Failed to retrieve device types: {str(e)}"

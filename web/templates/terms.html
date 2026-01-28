@@ -1,184 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Terms and Conditions - EOS Tracker{% endblock %}
+{% block title %}Terms of Service{% endblock %}
 
 {% block content %}
-<div class="bg-white py-12">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-10 pb-8 border-b border-neutral-200">
-            <h1 class="text-3xl font-bold text-neutral-900 mb-3">Terms and Conditions</h1>
-            <p class="text-sm text-neutral-600">Last Updated: <span class="code-font">January 25, 2026</span></p>
-        </div>
+<div class="mono markdown-content mobile-card" style="max-width: 800px; margin: 0 auto; font-size: 14px; line-height: 1.6; padding: 30px;">
+    <h1 style="border-bottom: 2px solid #000; margin-bottom: 20px;">TERMS_OF_SERVICE</h1>
+    <p>LAST_REVISION: 2026-01-01</p>
 
-        <!-- Content -->
-        <div class="prose prose-lg max-w-none">
-            <div class="space-y-8">
-                <!-- Section 1 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-primary-100 text-primary-700 text-sm font-bold mr-3">1</span>
-                        Acceptance of Terms
-                    </h2>
-                    <div class="pl-11">
-                        <p class="text-neutral-700 leading-relaxed">
-                            By accessing or using EOS Tracker ("the App"), provided by Ahmad Tahir ("the Proprietor"), you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the service.
-                        </p>
-                    </div>
-                </section>
+    <h3 style="margin-top: 30px;">1. ACCEPTANCE</h3>
+    <p>By accessing the EOS Tracker utility ("Service"), you agree to be bound by these Terms. If you do not agree,
+        terminate access immediately.</p>
 
-                <!-- Section 2 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-primary-100 text-primary-700 text-sm font-bold mr-3">2</span>
-                        Description of Service
-                    </h2>
-                    <div class="pl-11">
-                        <p class="text-neutral-700 leading-relaxed">
-                            EOS Tracker is a web application designed to help network engineers manage End-of-Support (EOS) and End-of-Life (EOL) dates for network infrastructure. The service is provided in two tiers: a Free Tier with limited features and a Pro Tier with expanded functionality.
-                        </p>
-                    </div>
-                </section>
+    <h3 style="margin-top: 30px;">2. USE_LICENSE</h3>
+    <p>Permission is granted to use the Service for internal network infrastructure monitoring. Reverse engineering,
+        automated monitoring, or monitoring of third-party networks without authorization is prohibited.</p>
 
-                <!-- Section 3 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-primary-100 text-primary-700 text-sm font-bold mr-3">3</span>
-                        User Accounts
-                    </h2>
-                    <div class="pl-11">
-                        <ul class="space-y-3 text-neutral-700">
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>You must provide a valid name and email address to create an account.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>You are solely responsible for maintaining the security of your account and password.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span>The Proprietor cannot and will not be liable for any loss or damage from your failure to comply with this security obligation.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
+    <h3 style="margin-top: 30px;">3. DISCLAIMER</h3>
+    <p>THE SERVICE IS PROVIDED "AS IS". EOS DATES ARE SOURCED FROM VENDOR PUBLIC DATA BUT MAY CONTAIN INACCURACIES. THE
+        OPERATOR IS SOLELY RESPONSIBLE FOR VERIFICATION.</p>
 
-                <!-- Section 4 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-primary-100 text-primary-700 text-sm font-bold mr-3">4</span>
-                        Payments and Billing
-                    </h2>
-                    <div class="pl-11">
-                        <ul class="space-y-3 text-neutral-700">
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong>Payment Processing:</strong> All payments are handled securely through Paystack. By upgrading to the Pro Tier, you agree to Paystack's terms of service.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong>No Refunds:</strong> All fees paid to EOS Tracker are non-refundable. You may cancel your Pro subscription at any time to prevent future billing, but no prorated refunds will be issued for the current billing cycle.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                <!-- Section 5 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-primary-100 text-primary-700 text-sm font-bold mr-3">5</span>
-                        User Content and Data
-                    </h2>
-                    <div class="pl-11">
-                        <ul class="space-y-3 text-neutral-700">
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong>Ownership:</strong> You retain all ownership rights to the data (including CSV files) you upload to EOS Tracker.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong>Usage License:</strong> You grant EOS Tracker a worldwide, non-exclusive license to host, store, and display your data solely for the purpose of providing the service to you.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-primary-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong>Aggregated Data:</strong> We reserve the right to use de-identified, anonymized, and aggregated data derived from user inputs for internal analysis and to improve our global hardware support database.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                <!-- Section 6 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-primary-100 text-primary-700 text-sm font-bold mr-3">6</span>
-                        Limitation of Liability
-                    </h2>
-                    <div class="pl-11">
-                        <ul class="space-y-3 text-neutral-700">
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong>Accuracy of Data:</strong> While we strive for accuracy, network hardware support dates change frequently. EOS Tracker provides data for informational purposes only. We do not guarantee the accuracy or completeness of any EOS/EOL dates.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="h-5 w-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong>No Warranty:</strong> The service is provided "as is." Ahmad Tahir shall not be liable for any direct, indirect, or incidental damages, including but not limited to network downtime, security breaches, or hardware failure resulting from reliance on the App.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-
-                <!-- Section 7 -->
-                <section>
-                    <h2 class="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                        <span class="inline-flex items-center justify-center h-8 w-8 rounded bg-primary-100 text-primary-700 text-sm font-bold mr-3">7</span>
-                        Governing Law
-                    </h2>
-                    <div class="pl-11">
-                        <p class="text-neutral-700 leading-relaxed">
-                            These Terms shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria.
-                        </p>
-                    </div>
-                </section>
-            </div>
-        </div>
-
-        <!-- Footer Notice -->
-        <div class="mt-12 pt-8 border-t border-neutral-200">
-            <div class="bg-primary-50 border border-primary-200 rounded-lg p-6">
-                <div class="flex items-start">
-                    <svg class="h-6 w-6 text-primary-600 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                        <h3 class="text-sm font-semibold text-neutral-900 mb-1">Questions About These Terms?</h3>
-                        <p class="text-sm text-neutral-700">
-                            If you have any questions about these Terms and Conditions, please contact Ahmad Tahir at <a href="mailto:tahirahma12@gmail.com" class="text-primary-600 hover:text-primary-700 font-medium transition">tahirahma12@gmail.com</a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div style="margin-top: 50px; border-top: 1px solid #ddd; padding-top: 10px; color: #666;">
+        END OF DOCUMENT
     </div>
 </div>
 {% endblock %}

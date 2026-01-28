@@ -3,33 +3,35 @@
 {% block title %}About - EOS Tracker{% endblock %}
 
 {% block content %}
-<div class="bg-white py-16">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-bold text-neutral-900 mb-8">About EOS Tracker</h1>
-        
-        <div class="prose prose-lg max-w-none">
-            <div class="space-y-6 text-neutral-700 leading-relaxed">
-                <p>
-                    EOS Tracker helps network engineers proactively manage End-of-Support dates for their network infrastructure. 
-                    Never miss a critical device EOS deadline again.
-                </p>
-                
-                <div class="pt-8 border-t border-neutral-200">
-                    <h2 class="text-2xl font-semibold text-neutral-900 mb-4">Our Mission</h2>
-                    <p>
-                        To provide network engineers with the tools they need to maintain secure and compliant network infrastructure 
-                        by tracking End-of-Support dates and delivering timely alerts.
-                    </p>
-                </div>
-                
-                <div class="pt-8 border-t border-neutral-200">
-                    <h2 class="text-2xl font-semibold text-neutral-900 mb-4">Contact Us</h2>
-                    <p>
-                        Have questions or feedback? We'd love to hear from you at <a href="mailto:support@eostracker.com" class="text-primary-600 hover:text-primary-700 font-medium transition">support@eostracker.com</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="mono mobile-card" style="max-width: 800px; margin: 0 auto; padding: 30px;">
+    <h1 style="border-bottom: 2px solid #000; margin-bottom: 20px;">NAME</h1>
+    <p style="padding-left: 20px; margin-bottom: 30px;">
+        eos_tracker - network infrastructure lifecycle management utility
+    </p>
+
+    <h1 style="border-bottom: 2px solid #000; margin-bottom: 20px;">SYNOPSIS</h1>
+    <p style="padding-left: 20px; margin-bottom: 30px;">
+        <strong>eos_tracker</strong> [--monitor] [--alert] <em>devices...</em>
+    </p>
+
+    <h1 style="border-bottom: 2px solid #000; margin-bottom: 20px;">DESCRIPTION</h1>
+    <p style="padding-left: 20px; margin-bottom: 15px;">
+        <strong>EOS Tracker</strong> is a specialized utility designed for network engineers to track End-of-Support
+        (EOS) and End-of-Life (EOL) dates for critical infrastructure hardware.
+    </p>
+    <p style="padding-left: 20px; margin-bottom: 30px;">
+        Unlike generic inventory systems, EOS Tracker focuses specifically on the vendor support lifecycle, providing
+        automated alerts at T-minus 365, 180, 90, and 30 days before support termination.
+    </p>
+
+    <h1 style="border-bottom: 2px solid #000; margin-bottom: 20px;">AUTHOR</h1>
+    <p style="padding-left: 20px; margin-bottom: 30px;">
+        Contact: <a href="mailto:tahirahma12@gmail.com">tahirahma12@gmail.com</a>
+    </p>
+
+    <h1 style="border-bottom: 2px solid #000; margin-bottom: 20px;">SEE ALSO</h1>
+    <p style="padding-left: 20px;">
+        <a href="/terms">terms(5)</a>, <a href="/privacy">privacy(5)</a>
+    </p>
 </div>
 {% endblock %}

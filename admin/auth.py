@@ -47,22 +47,22 @@ class AdminAuth(AuthenticationBackend):
             user = db.query(User).filter(User.email == email).first()
             
             if not user:
-                logger.warning(f"Admin login failed: user not found - {email}")
+                logger.warning("Admin login failed: user not found")
                 return False
             
             # Verify password
             if not verify_password(password, user.hashed_password):
-                logger.warning(f"Admin login failed: invalid password - {email}")
+                logger.warning("Admin login failed: invalid credentials")
                 return False
             
             # Check if user is admin
             if not user.is_admin:
-                logger.warning(f"Admin login denied: user is not admin - {email}")
+                logger.warning("Admin login denied: user is not admin")
                 return False
             
             # Check if user is active
             if not user.is_active:
-                logger.warning(f"Admin login denied: user is inactive - {email}")
+                logger.warning("Admin login denied: user is inactive")
                 return False
             
             # Create session token and store in session
@@ -72,7 +72,7 @@ class AdminAuth(AuthenticationBackend):
                 "admin_user_id": user.id
             })
             
-            logger.info(f"Admin login successful: {email}")
+            logger.info("Admin login successful")
             return True
             
         except Exception as e:

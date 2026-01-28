@@ -1,181 +1,86 @@
 {% extends "base.html" %}
 
-{% block title %}EOS Tracker - Never Miss Critical Device End-of-Support Deadlines{% endblock %}
+{% block title %}EOS Tracker Console{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-        <div class="text-center">
-            <h1 class="text-4xl tracking-tight font-bold text-white sm:text-5xl lg:text-6xl">
-                <span class="block">Never Miss a</span>
-                <span class="block text-accent-300">Device End-of-Support Date</span>
-            </h1>
-            <p class="mt-6 max-w-2xl mx-auto text-lg text-primary-100">
-                Track End-of-Support dates for your network infrastructure. Get automated alerts before critical deadlines. Maintain security compliance effortlessly.
-            </p>
-            
-            <!-- Search Bar -->
-            <div class="mt-10 max-w-xl mx-auto">
-                <form action="/search" method="GET" class="flex shadow-lg">
-                    <input type="text" name="q" placeholder="Search devices... (e.g., Cisco Catalyst)" class="flex-1 block w-full px-4 py-3 rounded-l-md border-0 text-neutral-900 placeholder-neutral-500 focus:ring-2 focus:ring-accent-500 focus:outline-none">
-                    <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-r-md text-white bg-accent-600 hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition">
-                        Search
-                    </button>
-                </form>
-            </div>
-            
-            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                {% if not current_user %}
-                <a href="/register" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 bg-white hover:bg-neutral-50 transition shadow-md">
-                    Get Started Free
-                </a>
-                <a href="/search" class="inline-flex items-center px-6 py-3 border-2 border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-primary-700 transition">
-                    Browse Devices
-                </a>
-                </div> <p class="mt-4 text-sm text-primary-200">
-                    Already using EOS Tracker? <a href="/login" class="font-medium text-white hover:text-accent-300 transition underline underline-offset-4">Sign in to your account</a>
-                </p></div>
-                {% else %}
-                <a href="/dashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 bg-white hover:bg-neutral-50 transition shadow-md">
-                    Go to Dashboard
-                </a>
-                {% endif %}
-            </div>
-        </div>
+<div class="grid-2">
+    <!-- Quick Search / Console -->
+    <div style="grid-column: 1 / -1;">
+        <h2>> DEVICE_SEARCH</h2>
+        <form action="/search" method="GET" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <input type="text" name="q" placeholder="ENTER QUERY (e.g. Cisco 2960)..." class="search-large" 
+                   autofocus style="flex: 1; min-width: 200px;">
+            <button type="submit"
+                style="background: var(--color-primary); color: #fff; border: 1px solid var(--border-color); padding: 0 30px; font-family: var(--font-display); cursor: pointer; border-radius: 4px; white-space: nowrap;">EXECUTE</button>
+        </form>
     </div>
-</div>
 
-<!-- Features Section -->
-<div class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-neutral-900">
-                Everything You Need to Track EOS Dates
-            </h2>
-            <p class="mt-4 text-lg text-neutral-600">
-                Comprehensive tools to manage your network infrastructure lifecycle
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <!-- Feature 1 -->
-            <div class="text-center p-6">
-                <div class="inline-flex items-center justify-center h-14 w-14 rounded-lg bg-primary-100 text-primary-700 mb-4">
-                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-neutral-900 mb-2">Device Tracking</h3>
-                <p class="text-neutral-600">
-                    Track unlimited devices with Pro. Monitor EOS dates with real-time countdown timers.
-                </p>
-            </div>
-
-            <!-- Feature 2 -->
-            <div class="text-center p-6">
-                <div class="inline-flex items-center justify-center h-14 w-14 rounded-lg bg-primary-100 text-primary-700 mb-4">
-                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-neutral-900 mb-2">Automated Alerts</h3>
-                <p class="text-neutral-600">
-                    Receive email alerts at 365, 180, 90, and 30 days before EOS dates.
-                </p>
-            </div>
-
-            <!-- Feature 3 -->
-            <div class="text-center p-6">
-                <div class="inline-flex items-center justify-center h-14 w-14 rounded-lg bg-primary-100 text-primary-700 mb-4">
-                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-neutral-900 mb-2">Professional Reports</h3>
-                <p class="text-neutral-600">
-                    Generate PDF reports for stakeholders. Pro tier includes charts and visualizations.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Featured Devices -->
-{% if featured_devices %}
-<div class="bg-neutral-50 py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-neutral-900">
-                Recently Added Devices
-            </h2>
-            <p class="mt-4 text-lg text-neutral-600">
-                Browse our comprehensive database of network equipment
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {% for device in featured_devices %}
-            <div class="card-hover bg-white border border-neutral-200 rounded-lg p-6">
-                <h3 class="text-base font-semibold text-neutral-900 code-font">{{ device.vendor }} {{ device.model }}</h3>
-                <p class="mt-1 text-sm text-neutral-500">{{ device.device_type }}</p>
-                
-                <div class="mt-4 pt-4 border-t border-neutral-200 space-y-2">
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-neutral-500">EOS Date</span>
-                        <span class="font-medium text-neutral-900 code-font">{{ device.eos_date }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        {% if device.status == "active" %}
-                        <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-accent-50 text-accent-700 border border-accent-200">
-                            Active
-                        </span>
-                        {% elif device.status == "approaching" %}
-                        <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                            Approaching EOS
-                        </span>
-                        {% else %}
-                        <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-                            End of Support
-                        </span>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <a href="/device/{{ device.slug }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium transition">
-                        View Details →
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <div class="mt-10 text-center">
-            <a href="/search" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition">
-                Browse All Devices
-            </a>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- CTA Section -->
-<div class="bg-primary-700">
-    <div class="max-w-4xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-bold text-white sm:text-4xl">
-            <span class="block">Ready to get started?</span>
-            <span class="block mt-2 text-accent-300">Start tracking devices today.</span>
-        </h2>
-        <p class="mt-4 text-lg text-primary-100">
-            Free tier includes 3 devices. Upgrade to Pro for unlimited tracking.
+    <!-- System Status / Intro -->
+    <div>
+        <h3>> SYSTEM_STATUS</h3>
+        <p class="mono text-sm" style="margin-bottom: 20px; line-height: 1.6;">
+            EOS_TRACKER IS ACTIVE.<br>
+            TRACKING LIFECYCLE FOR NETWORK INFRASTRUCTURE.
         </p>
-        <a href="/register" class="mt-8 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 bg-white hover:bg-neutral-50 transition shadow-lg">
-            Sign up for free
-        </a>
-        <p class="mt-4 text-sm text-primary-100">
-                Already have an account? <a href="/login" class="font-medium text-white hover:text-accent-300 transition underline underline-offset-4">Sign in</a>
-        </p>
+
+        {% if not current_user %}
+        <div class="mobile-card" style="border: 1px solid var(--border-color); padding: 15px; background: #fafafa;">
+            <p style="font-size: 13px; margin: 0 0 12px 0; font-family: var(--font-display);">ACCESS_LEVEL: GUEST</p>
+            <a href="/register"
+                style="display: block; width: 100%; text-align: center; background: #333; color: #fff; padding: 12px 0; margin-bottom: 8px; text-decoration: none; border-radius: 4px; font-family: var(--font-display);">>
+                INITIALIZE ACCOUNT</a>
+            <a href="/login"
+                style="display: block; width: 100%; text-align: center; border: 1px solid #ccc; color: #333; padding: 12px 0; text-decoration: none; border-radius: 4px; font-family: var(--font-display);">>
+                AUTHENTICATE</a>
+        </div>
+        {% else %}
+        <div class="mobile-card" style="border: 1px solid var(--border-color); padding: 15px; background: #fafafa;">
+            <p style="font-size: 13px; margin: 0 0 12px 0; font-family: var(--font-display);">ACCESS_LEVEL: REGISTERED_USER</p>
+            <a href="/dashboard"
+                style="display: block; width: 100%; text-align: center; background: #333; color: #fff; padding: 12px 0; text-decoration: none; border-radius: 4px; font-family: var(--font-display);">>
+                GOTO_DASHBOARD</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Additions Table -->
+    <div>
+        <h3>> RECENT_DEVICES</h3>
+        {% if featured_devices %}
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>DEVICE_ID</th>
+                        <th>EOS_DATE</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in featured_devices %}
+                    <tr>
+                        <td data-label="DEVICE" class="mono">
+                            <a href="/device/{{ device.slug }}" style="text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center;">{{ device.vendor }} {{ device.model }}</a>
+                        </td>
+                        <td data-label="EOS DATE" class="mono">{{ device.eos_date }}</td>
+                        <td data-label="STATUS">
+                            {% if device.status == "active" %}
+                            <span class="badge badge-active">Active</span>
+                            {% elif device.status == "approaching" %}
+                            <span class="badge badge-warn">Warn</span>
+                            {% else %}
+                            <span class="badge badge-crit">EOS</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div style="text-align: right; margin-top: 10px;">
+            <a href="/search" class="mono" style="font-size: 12px; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; padding: 4px;">[VIEW_FULL_DATABASE]</a>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -13,12 +13,14 @@ from io import BytesIO, StringIO
 from typing import Dict, Any
 
 from sqlalchemy.orm import Session
+import logging
 
 from database.models import User
 from database import UserTier
 from tracking import get_user_tracked_devices
 from .templates import generate_basic_pdf, generate_enhanced_pdf
 
+logger = logging.getLogger(__name__)
 
 # Type alias for Result pattern
 Result = Dict[str, Any]
@@ -54,6 +56,7 @@ def generate_pdf_report(
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("PDF report generation failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -119,13 +122,18 @@ def generate_pdf_report(
         # Get PDF bytes
         pdf_bytes = buffer.getvalue()
         buffer.close()
-        
+
+        logger.info(
+            "PDF report generated",
+            extra={"device_count": len(device_data), "include_charts": bool(include_charts)},
+        )
         return {
             "success": True,
             "data": pdf_bytes
         }
     
     except Exception as e:
+        logger.exception("Failed to generate PDF report")
         return {
             "success": False,
             "error": f"Failed to generate PDF report: {str(e)}"
@@ -156,6 +164,7 @@ def generate_csv_export(user_id: int, db: Session) -> Result:
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning("CSV export failed: user not found")
             return {
                 "success": False,
                 "error": "User not found"
@@ -237,13 +246,15 @@ def generate_csv_export(user_id: int, db: Session) -> Result:
         csv_content = output.getvalue()
         csv_bytes = csv_content.encode('utf-8')
         output.close()
-        
+
+        logger.info("CSV export generated", extra={"device_count": len(tracked_devices_info)})
         return {
             "success": True,
             "data": csv_bytes
         }
     
     except Exception as e:
+        logger.exception("Failed to generate CSV export")
         return {
             "success": False,
             "error": f"Failed to generate CSV export: {str(e)}"

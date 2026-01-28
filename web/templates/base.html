@@ -1,405 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}Track End-of-Support dates for network infrastructure. Never miss critical device EOS deadlines.{% endblock %}">
-    <title>{% block title %}EOS Tracker - Network Device End-of-Support Tracking{% endblock %}</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description"
+        content="{% block meta_description %}EOS Tracker: Network Infrastructure Lifecycle Management{% endblock %}">
+    <meta name="theme-color" content="#111111">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>{% block title %}EOS Tracker{% endblock %}</title>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary': {
-                            50: '#e6f0f5',
-                            100: '#cce1eb',
-                            200: '#99c3d7',
-                            300: '#66a5c3',
-                            400: '#3387af',
-                            500: '#00699b',
-                            600: '#00547c',
-                            700: '#003f5d',
-                            800: '#002a3e',
-                            900: '#00151f',
-                        },
-                        'accent': {
-                            50: '#e6f5f0',
-                            100: '#ccebe1',
-                            200: '#99d7c3',
-                            300: '#66c3a5',
-                            400: '#33af87',
-                            500: '#009b69',
-                            600: '#007c54',
-                            700: '#005d3f',
-                            800: '#003e2a',
-                            900: '#001f15',
-                        },
-                        'neutral': {
-                            50: '#f8f9fa',
-                            100: '#f1f3f5',
-                            200: '#e9ecef',
-                            300: '#dee2e6',
-                            400: '#ced4da',
-                            500: '#adb5bd',
-                            600: '#6c757d',
-                            700: '#495057',
-                            800: '#343a40',
-                            900: '#212529',
-                        }
-                    },
-                    fontFamily: {
-                        'sans': ['IBM Plex Sans', 'system-ui', '-apple-system', 'sans-serif'],
-                        'mono': ['IBM Plex Mono', 'Consolas', 'monospace'],
-                    },
-                }
-            }
-        }
-    </script>
-    
-    <!-- Alpine.js -->
+    <!-- Terminal CSS (Mobile-Responsive) -->
+    <link href="/static/css/terminal.css" rel="stylesheet">
+
+    <!-- Alpine.js (Utility only) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <!-- Custom CSS -->
-    <style>
-        [x-cloak] { display: none !important; }
-        
-        body {
-            font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-        }
-        
-        .code-font {
-            font-family: 'IBM Plex Mono', Consolas, monospace;
-        }
-        
-        /* Status indicators */
-        .status-indicator {
-            position: relative;
-            padding-left: 1rem;
-        }
-        
-        .status-indicator::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-        }
-        
-        .status-indicator.status-active::before {
-            background-color: #009b69;
-            box-shadow: 0 0 0 2px rgba(0, 155, 105, 0.2);
-        }
-        
-        .status-indicator.status-approaching::before {
-            background-color: #f59e0b;
-            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-        }
-        
-        .status-indicator.status-eos::before {
-            background-color: #dc2626;
-            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
-        }
-        
-        /* Navigation active state */
-        .nav-link {
-            position: relative;
-            transition: color 0.2s;
-        }
-        
-        .nav-link:hover {
-            color: #00699b;
-        }
-        
-        .nav-link.active {
-            color: #00699b;
-        }
-        
-        .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: #00699b;
-        }
-        
-        /* Card hover effects */
-        .card-hover {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .card-hover:hover {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transform: translateY(-2px);
-        }
-        
-        /* Button styles */
-        .btn-primary {
-            background-color: #00699b;
-            color: white;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary:hover {
-            background-color: #00547c;
-        }
-        
-        .btn-secondary {
-            background-color: transparent;
-            border: 1px solid #ced4da;
-            color: #495057;
-            transition: all 0.2s;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #f8f9fa;
-            border-color: #adb5bd;
-        }
-        
-        /* Table enhancements */
-        .data-table {
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .data-table tbody tr {
-            transition: background-color 0.15s;
-        }
-        
-        .data-table tbody tr:hover {
-            background-color: #f8f9fa;
-        }
 
-         /* Match your existing Tailwind focus ring */
-        .ts-control { border-radius: 0.375rem !important; padding: 0.5rem 0.75rem !important; }
-        .ts-wrapper.focus .ts-control { 
-            border-color: #4f46e5 !important; /* primary-600 */
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2) !important; 
-        }
-    </style>
-    
+    <!-- Marked.js for Markdown Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-neutral-50 text-neutral-900">
-    <!-- Navigation -->
 
-<nav class="bg-white border-b border-neutral-200" x-data="{ mobileMenuOpen: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <div class="flex-shrink-0 flex items-center">
-                    <a href="/" class="flex items-center space-x-2">
-                        <svg class="w-8 h-8 text-primary-600" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="4" y="4" width="24" height="24" rx="2" stroke="currentColor" stroke-width="2"/>
-                            <path d="M4 12H28" stroke="currentColor" stroke-width="2"/>
-                            <circle cx="10" cy="8" r="1" fill="currentColor"/>
-                            <circle cx="14" cy="8" r="1" fill="currentColor"/>
-                            <circle cx="18" cy="8" r="1" fill="currentColor"/>
-                            <path d="M8 18H24M8 22H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <span class="text-xl font-semibold text-neutral-900 tracking-tight">EOS<span class="text-primary-600">Tracker</span></span>
-                    </a>
-                </div>
-                
-                <div class="hidden sm:ml-10 sm:flex sm:space-x-8">
-                    {% if current_user %}
-                        <a href="/dashboard" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium {% if request.path == '/dashboard' %}active text-primary-600{% else %}text-neutral-600{% endif %}">Dashboard</a>
-                        <a href="/search" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium {% if request.path == '/search' %}active text-primary-600{% else %}text-neutral-600{% endif %}">Device Database</a>
-                        <a href="/tracking" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium {% if request.path == '/tracking' %}active text-primary-600{% else %}text-neutral-600{% endif %}">My Devices</a>
-                    {% else %}
-                        <a href="/" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium {% if request.path == '/' %}active text-primary-600{% else %}text-neutral-600{% endif %}">Home</a>
-                        <a href="/search" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium {% if request.path == '/search' %}active text-primary-600{% else %}text-neutral-600{% endif %}">Device Database</a>
-                        <a href="/pricing" class="nav-link inline-flex items-center px-1 pt-1 text-sm font-medium {% if request.path == '/pricing' %}active text-primary-600{% else %}text-neutral-600{% endif %}">Pricing</a>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="hidden sm:flex sm:items-center">
-                {% if current_user %}
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
 
-                    <div class="ml-3 relative" x-data="{ open: false }">
-                        <button @click="open = !open" type="button" class="flex items-center max-w-xs text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-md px-2 py-1 hover:bg-neutral-50 transition">
-                            <div class="h-8 w-8 rounded bg-primary-600 flex items-center justify-center">
-                                <span class="text-sm font-semibold text-white">{{ current_user.full_name[0].upper() }}</span>
-                            </div>
-                            <span class="ml-3 text-sm font-medium text-neutral-900">{{ current_user.full_name }}</span>
-                            <svg class="ml-2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            <div class="py-1">
-                                <a href="/profile" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50">Profile</a>
-                                <a href="/subscription" class="flex items-center justify-between px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50">
-                                    <span>Subscription</span>
-                                    {% if current_user.tier == "pro" %}
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">Pro</span>
-                                    {% endif %}
-                                </a>
-                                <div class="border-t border-neutral-200 my-1"></div>
-                                <form action="/logout" method="POST"><button type="submit" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50">Sign out</button></form>
-                            </div>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="flex items-center space-x-3">
-                        <a href="/login" class="text-sm font-medium text-neutral-700 hover:text-neutral-900">Sign in</a>
-                        <a href="/register" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">Get Started</a>
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="flex items-center sm:hidden">
-                <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none">
-                    <span class="sr-only">Open main menu</span>
-                    <svg x-show="!mobileMenuOpen" class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <svg x-show="mobileMenuOpen" x-cloak class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+    <!-- Top Status Bar -->
+    <header class="status-bar">
+        <div class="left">
+            <span class="brand">EOS_TRACKER_V1.0</span>
+            <span class="hide-mobile" style="margin-left: 20px; color: #888;">// NETWORK_INFRASTRUCTURE_LIFECYCLE</span>
         </div>
-    </div>
-
-    <div x-show="mobileMenuOpen" x-cloak class="sm:hidden bg-white border-b border-neutral-200">
-        <div class="pt-2 pb-3 space-y-1">
+        <div class="right">
             {% if current_user %}
-                <a href="/dashboard" class="block pl-3 pr-4 py-2 border-l-4 {% if request.path == '/dashboard' %}border-primary-500 bg-primary-50 text-primary-700{% else %}border-transparent text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-800{% endif %} text-base font-medium">Dashboard</a>
-                <a href="/search" class="block pl-3 pr-4 py-2 border-l-4 {% if request.path == '/search' %}border-primary-500 bg-primary-50 text-primary-700{% else %}border-transparent text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-800{% endif %} text-base font-medium">Device Database</a>
-                <a href="/tracking" class="block pl-3 pr-4 py-2 border-l-4 {% if request.path == '/tracking' %}border-primary-500 bg-primary-50 text-primary-700{% else %}border-transparent text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-800{% endif %} text-base font-medium">My Devices</a>
+            <span class="hide-mobile"><a href="/profile">usr: {{ current_user.full_name }}</a></span>
+            <span class="show-mobile"><a href="/profile">{{ current_user.full_name }}</a></span>
+            <span style="margin: 0 6px;">|</span>
+            <form action="/logout" method="POST" style="display:inline;">
+                <button type="submit"
+                    style="background:none; border:none; color:#ddd; cursor:pointer; font-family: inherit; font-size: inherit; text-decoration: underline; padding: 4px;">LOGOUT</button>
+            </form>
             {% else %}
-                <a href="/" class="block pl-3 pr-4 py-2 border-l-4 {% if request.path == '/' %}border-primary-500 bg-primary-50 text-primary-700{% else %}border-transparent text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-800{% endif %} text-base font-medium">Home</a>
-                <a href="/search" class="block pl-3 pr-4 py-2 border-l-4 {% if request.path == '/search' %}border-primary-500 bg-primary-50 text-primary-700{% else %}border-transparent text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-800{% endif %} text-base font-medium">Device Database</a>
-                <a href="/pricing" class="block pl-3 pr-4 py-2 border-l-4 {% if request.path == '/pricing' %}border-primary-500 bg-primary-50 text-primary-700{% else %}border-transparent text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-800{% endif %} text-base font-medium">Pricing</a>
+            <a href="/login">LOGIN</a>
+            <a href="/register">REGISTER</a>
             {% endif %}
         </div>
-        
-        <div class="pt-4 pb-3 border-t border-neutral-200">
-            {% if current_user %}
-                <div class="flex items-center px-4">
-                    <div class="flex-shrink-0 h-10 w-10 rounded bg-primary-600 flex items-center justify-center text-white font-bold">
-                        {{ current_user.full_name[0].upper() }}
-                    </div>
-                    <div class="ml-3">
-                        <div class="text-base font-medium text-neutral-800">{{ current_user.full_name }}</div>
-                        <div class="text-sm font-medium text-neutral-500">{{ current_user.email }}</div>
-                    </div>
-                </div>
-                <div class="mt-3 space-y-1">
-                    <a href="/profile" class="block px-4 py-2 text-base font-medium text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100">Profile</a>
-                    <form action="/logout" method="POST"><button type="submit" class="block w-full text-left px-4 py-2 text-base font-medium text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100">Sign out</button></form>
-                </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-bar">
+        <div class="container">
+            <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+                <span class="hide-mobile">[ /HOME ]</span>
+                <span class="show-mobile">HOME</span>
+            </a>
+            <a href="/search" class="{% if request.path == '/search' %}active{% endif %}">
+                <span class="hide-mobile">[ /DATABASE ]</span>
+                <span class="show-mobile">SEARCH</span>
+            </a>
+            {% if not current_user %}
+            <a href="/pricing" class="{% if request.path == '/pricing' %}active{% endif %}">
+                <span class="hide-mobile">[ /PRICING ]</span>
+                <span class="show-mobile">PRICING</span>
+            </a>
+            <a href="/about" class="{% if request.path == '/about' %}active{% endif %}">
+                <span class="hide-mobile">[ /ABOUT ]</span>
+                <span class="show-mobile">ABOUT</span>
+            </a>
             {% else %}
-                <div class="mt-3 space-y-1 px-4">
-                    <a href="/login" class="block text-center px-4 py-2 text-base font-medium text-neutral-700 border border-neutral-300 rounded-md">Sign in</a>
-                    <a href="/register" class="block text-center mt-2 px-4 py-2 text-base font-medium text-white bg-primary-600 rounded-md">Get Started</a>
-                </div>
+            <a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">
+                <span class="hide-mobile">[ /DASHBOARD ]</span>
+                <span class="show-mobile">DASH</span>
+            </a>
+            <a href="/tracking" class="{% if request.path == '/tracking' %}active{% endif %}">
+                <span class="hide-mobile">[ /MY_DEVICES ]</span>
+                <span class="show-mobile">DEVICES</span>
+            </a>
+            <a href="/subscription" class="{% if request.path == '/subscription' %}active{% endif %}">
+                <span class="hide-mobile">[/SUBSCRIPTION]</span>
+                <span class="show-mobile">SUB</span>
+            </a>
             {% endif %}
         </div>
-    </div>
-</nav>
-    
-    <!-- Flash Messages -->
+    </nav>
+
+    <!-- Flash Messages / System Logs -->
     {% if flash_messages %}
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            {% for message in flash_messages %}
-                <div class="rounded-md p-4 mb-4 border {% if message.category == 'success' %}bg-accent-50 border-accent-300{% elif message.category == 'error' %}bg-red-50 border-red-300{% elif message.category == 'warning' %}bg-yellow-50 border-yellow-300{% else %}bg-primary-50 border-primary-300{% endif %}" x-data="{ show: true }" x-show="show" x-cloak>
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            {% if message.category == 'success' %}
-                                <svg class="h-5 w-5 text-accent-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                            {% elif message.category == 'error' %}
-                                <svg class="h-5 w-5 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                </svg>
-                            {% else %}
-                                <svg class="h-5 w-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                                </svg>
-                            {% endif %}
-                        </div>
-                        <div class="ml-3 flex-1">
-                            <p class="text-sm font-medium {% if message.category == 'success' %}text-accent-800{% elif message.category == 'error' %}text-red-800{% elif message.category == 'warning' %}text-yellow-800{% else %}text-primary-800{% endif %}">
-                                {{ message.message }}
-                            </p>
-                        </div>
-                        <div class="ml-auto pl-3">
-                            <button @click="show = false" class="inline-flex rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 focus:outline-none transition">
-                                <span class="sr-only">Dismiss</span>
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+    <div class="container" style="margin-top: 20px;">
+        {% for message in flash_messages %}
+        <div class="sys-log {% if message.category == 'error' %}error{% endif %}">
+            <span class="timestamp">[{{ "now" }}]</span>
+            <span class="level">{% if message.category == 'error' %}ERR{% else %}INFO{% endif %}</span>
+            : {{ message.message }}
+            <span class="close-log" onclick="this.parentElement.remove();">&times;</span>
         </div>
+        {% endfor %}
+    </div>
     {% endif %}
-    
+
     <!-- Main Content -->
-    <main>
+    <main id="main-content" class="container" style="margin-top: 30px; min-height: 60vh;">
         {% block content %}{% endblock %}
     </main>
-    
+
     <!-- Footer -->
-    <footer class="bg-white border-t border-neutral-200 mt-16">
-        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
-                <div>
-                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Product</h3>
-                    <ul class="space-y-3">
-                        <li><a href="/search" class="text-sm text-neutral-600 hover:text-primary-600 transition">Device Database</a></li>
-                        <li><a href="/pricing" class="text-sm text-neutral-600 hover:text-primary-600 transition">Pricing</a></li>
-                    </ul>
-                </div>
-                <!-- <div>
-                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Support</h3>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Documentation</a></li>
-                        <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Contact</a></li>
-                    </ul>
-                </div> -->
-                <div>
-                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Company</h3>
-                    <ul class="space-y-3">
-                        <li><a href="/about" class="text-sm text-neutral-600 hover:text-primary-600 transition">About</a></li>
-                        <!-- <li><a href="#" class="text-sm text-neutral-600 hover:text-primary-600 transition">Blog</a></li> -->
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-xs font-semibold text-neutral-500 tracking-wider uppercase mb-4">Legal</h3>
-                    <ul class="space-y-3">
-                        <li><a href="/privacy" class="text-sm text-neutral-600 hover:text-primary-600 transition">Privacy</a></li>
-                        <li><a href="/terms" class="text-sm text-neutral-600 hover:text-primary-600 transition">Terms</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="mt-10 pt-8 border-t border-neutral-200">
-                <p class="text-sm text-neutral-500 text-center">
-                    &copy; 2026 EOS Tracker.
-                </p>
-            </div>
+    <footer>
+        <div class="container">
+            <p>
+                <a href="/about">ABOUT</a> &nbsp;|&nbsp;
+                <a href="/privacy">PRIVACY</a> &nbsp;|&nbsp;
+                <a href="/terms">TERMS</a> &nbsp;|&nbsp;
+                &copy; 2026 EOS_TRACKER
+            </p>
         </div>
     </footer>
-    
+
+    <!-- App JavaScript -->
+    <script src="/static/app.js"></script>
+
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
