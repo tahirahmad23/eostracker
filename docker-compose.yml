@@ -18,6 +18,62 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  db-backup:
+    image: postgres:15-alpine  
+    container_name: db_backup
+    volumes:
+      - pg_backups:/backups
+    environment:
+      - PGHOST=db
+      - PGPORT=5432
+      - PGDATABASE=${DB_NAME}
+      - PGUSER=${DB_USER}
+      - PGPASSWORD=${DB_PASSWORD}
+    command: >
+      sh -c "echo '${BACKUP_SCHEDULE} pg_dump -Fc -f /backups/backup_$$(date +\%Y\%m\%d_\%H\%M\%S).dump' | crontab - && crond -f -l 2"
+    depends_on:
+      - db  # Your PostgreSQL service name
+
+    restart: unless-stopped
+
+  backup-sync:
+    image: alpine:latest
+    container_name: backup_sync
+    volumes:
+      - pg_backups:/backups
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_REPO=${GITHUB_REPO}
+      - GITHUB_EMAIL=${GITHUB_EMAIL}
+      - GITHUB_USER=${GITHUB_USER}
+    working_dir: /backups
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "
+      apk add --no-cache git &&
+      git config --global user.email '${GITHUB_EMAIL}' &&
+      git config --global user.name '${GITHUB_USER}' &&
+      git config --global init.defaultBranch main &&
+      if [ ! -d .git ]; then
+        git init &&
+        git remote add origin https://${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git &&
+        touch .gitkeep &&
+        git add .gitkeep &&
+        git commit -m 'Initial commit' &&
+        git push -u origin main;
+      fi &&
+      while true; do
+        if [ -n \"\$(ls -A | grep -v .git)\" ]; then
+          git add . &&
+          git commit -m \"Backup \`date\`\" || true &&
+          git push origin main || true;
+        fi &&
+        sleep 84600;
+      done
+      "
+    depends_on:
+      - db-backup
+    restart: unless-stopped
 
   web:
     build: .
@@ -35,3 +91,4 @@ services:
 
 volumes:
   postgres_data:
+  pg_backups:

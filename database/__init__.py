@@ -1,7 +1,8 @@
 """
 Database module for EOS Tracker.
 
-Provides database models, connection management, and seeding utilities.
+Provides database models, connection management, seeding utilities,
+and production-safe device update system.
 """
 
 from database.models import (
@@ -26,6 +27,19 @@ from database.connection import (
     DATABASE_URL
 )
 from database.seed_data import seed_devices
+from database.update_devices import (
+    update_devices_from_json,
+    export_devices_to_json
+)
+from database.validators import (
+    validate_devices_file,
+    ValidationError
+)
+from database.utils.slug_generator import (
+    generate_slug,
+    generate_unique_slug,
+    validate_slug
+)
 
 __all__ = [
     # Models
@@ -47,7 +61,16 @@ __all__ = [
     "check_connection",
     "engine",
     "SessionLocal",
+    "DATABASE_URL",
     # Seed
     "seed_devices",
-    "DATABASE_URL"
+    # Update System
+    "update_devices_from_json",
+    "export_devices_to_json",
+    "validate_devices_file",
+    "ValidationError",
+    # Utils
+    "generate_slug",
+    "generate_unique_slug",
+    "validate_slug"
 ]
