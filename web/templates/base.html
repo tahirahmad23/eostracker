@@ -38,7 +38,7 @@
     <header class="status-bar">
         <div class="left">
             <span class="brand">EOS_TRACKER_V1.0</span>
-            <span class="hide-mobile" style="margin-left: 20px; color: #888;">// NETWORK_INFRASTRUCTURE_LIFECYCLE</span>
+            <!-- <span class="hide-mobile" style="margin-left: 20px; color: #888;">// NETWORK_INFRASTRUCTURE_LIFECYCLE</span> -->
         </div>
         <div class="right">
             {% if current_user %}
@@ -64,7 +64,7 @@
                 <span class="show-mobile">HOME</span>
             </a>
             <a href="/search" class="{% if request.path == '/search' %}active{% endif %}">
-                <span class="hide-mobile">[ /DATABASE ]</span>
+                <span class="hide-mobile">[ /DEVICE_SEARCH ]</span>
                 <span class="show-mobile">SEARCH</span>
             </a>
             {% if not current_user %}

@@ -6,7 +6,7 @@ Integrates all modules into a complete web application
 from logging_config import configure_logging
 
 # Configure logging as early as possible so all module loggers inherit it
-configure_logging()
+# configure_logging()
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles

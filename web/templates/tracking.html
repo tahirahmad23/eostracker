@@ -5,14 +5,15 @@
 {% block content %}
 <div style="max-width: 1000px; margin: 0 auto;">
     <!-- Header Section -->
-    <div class="mobile-card hide-mobile" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding: 0;">
+    <div class="mobile-card hide-mobile"
+        style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding: 0;">
         <div>
-            <h2>> ASSET_INVENTORY</h2>
+            <h2>> TRACKED_DEVICES</h2>
             <p class="mono text-sm">
                 {% if current_user.tier == "free" %}
-                LICENSE_TIER: FREE (USAGE: {{ tracked_devices|length }} / 3 SLOTS)
+                TIER: FREE (USAGE: {{ tracked_devices|length }} / 3 SLOTS)
                 {% else %}
-                LICENSE_TIER: PRO (USAGE: {{ tracked_devices|length }} DEVICES)
+                TIER: PRO (USAGE: {{ tracked_devices|length }} DEVICES)
                 {% endif %}
             </p>
         </div>
@@ -52,24 +53,28 @@
             PRO: {{ tracked_devices|length }} DEVICES
             {% endif %}
         </p>
-        
+
         <!-- Mobile action buttons -->
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             {% if can_add_more %}
-            <a href="/tracking/add" style="flex: 1; min-width: 120px; background: var(--color-active); color: #fff; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; text-decoration: none; border-radius: 4px;">
+            <a href="/tracking/add"
+                style="flex: 1; min-width: 120px; background: var(--color-active); color: #fff; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; text-decoration: none; border-radius: 4px;">
                 + ADD
             </a>
             {% else %}
-            <span style="flex: 1; min-width: 120px; background: #ddd; color: #888; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; border-radius: 4px;">
+            <span
+                style="flex: 1; min-width: 120px; background: #ddd; color: #888; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; border-radius: 4px;">
                 LIMIT
             </span>
             {% endif %}
-            
-            <button onclick="document.getElementById('importUpload').click()" style="flex: 1; min-width: 100px; background: #fff; border: 1px solid #333; color: #333; padding: 12px; font-family: var(--font-display); font-size: 14px; cursor: pointer; border-radius: 4px;">
+
+            <button onclick="document.getElementById('importUpload').click()"
+                style="flex: 1; min-width: 100px; background: #fff; border: 1px solid #333; color: #333; padding: 12px; font-family: var(--font-display); font-size: 14px; cursor: pointer; border-radius: 4px;">
                 IMPORT
             </button>
-            
-            <a href="/api/tracking/export?format=csv" style="flex: 1; min-width: 100px; background: #fff; border: 1px solid #333; color: #333; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; text-decoration: none; border-radius: 4px;">
+
+            <a href="/api/tracking/export?format=csv"
+                style="flex: 1; min-width: 100px; background: #fff; border: 1px solid #333; color: #333; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; text-decoration: none; border-radius: 4px;">
                 EXPORT
             </a>
         </div>
@@ -83,7 +88,7 @@
                     <th style="width: 250px;">ASSET_TAG (+MODEL)</th>
                     <th>TYPE</th>
                     <th>EOS_DATE</th>
-                    <th>T-MINUS</th>
+                    <th>REMAINING_DAYS</th>
                     <th>STATUS</th>
                     <th>OPS</th>
                 </tr>
@@ -95,7 +100,8 @@
                         <div class="mono font-bold">{{ device.custom_name or (device.device.vendor + " " +
                             device.device.model) }}</div>
                         {% if device.custom_name %}
-                        <div class="mono text-secondary text-sm" style="margin-top: 4px;">> {{ device.device.vendor }} {{ device.device.model }}
+                        <div class="mono text-secondary text-sm" style="margin-top: 4px;">> {{ device.device.vendor }}
+                            {{ device.device.model }}
                         </div>
                         {% endif %}
                         {% if device.notes %}
@@ -108,7 +114,8 @@
                     <td data-label="TYPE" class="mono text-sm">{{ device.device.device_type }}</td>
                     <td data-label="EOS DATE" class="mono">{{ device.device.eos_date }}</td>
                     <td data-label="REMAINING" class="mono">
-                        <span class="{% if device.device.days_until_eos < 0 %}status-eos{% endif %}" style="font-weight: {% if device.device.days_until_eos < 0 %}bold{% else %}normal{% endif %};">
+                        <span class="{% if device.device.days_until_eos < 0 %}status-eos{% endif %}"
+                            style="font-weight: {% if device.device.days_until_eos < 0 %}bold{% else %}normal{% endif %};">
                             {{ device.device.days_until_eos }}d
                         </span>
                     </td>
@@ -123,7 +130,8 @@
                     </td>
                     <td data-label="ACTION">
                         <form action="/tracking/{{ device.id }}/remove" method="POST"
-                            onsubmit="return confirm('CONFIRM REMOVAL: {{ device.custom_name or device.device.model }}?');" style="margin: 0;">
+                            onsubmit="return confirm('CONFIRM REMOVAL: {{ device.custom_name or device.device.model }}?');"
+                            style="margin: 0;">
                             <button type="submit"
                                 style="background: none; border: none; color: var(--color-crit); cursor: pointer; font-family: var(--font-display); font-size: 12px; text-decoration: underline; padding: 4px; min-height: 44px;">[REMOVE]</button>
                         </form>
@@ -138,7 +146,9 @@
         <p class="mono">[INVENTORY_EMPTY]</p>
         <p class="mono text-sm text-secondary">NO ASSETS CURRENTLY TRACKED.</p>
         <div style="margin-top: 20px;">
-            <a href="/tracking/add" style="text-decoration: underline; font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; padding: 8px;">> INITIATE_PROVISIONING</a>
+            <a href="/tracking/add"
+                style="text-decoration: underline; font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; padding: 8px;">>
+                INITIATE_PROVISIONING</a>
         </div>
     </div>
     {% endif %}

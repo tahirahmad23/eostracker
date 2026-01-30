@@ -67,7 +67,7 @@ def get_device_status(eos_date: date) -> str:
     elif days_until >= 90:
         return "approaching"
     else:
-        return "end_of_support"
+        return "Not Supported"
 
 
 def generate_slug(vendor: str, model: str) -> str:

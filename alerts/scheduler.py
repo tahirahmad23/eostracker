@@ -281,6 +281,9 @@ def check_user_alerts_now(user_id: int) -> dict:
         
         if result["success"] and result["data"] > 0:
             logger.info(f"Sent {result['data']} immediate alert(s)")
+        else:
+            logger.error(f"result: {result}")
+        
         return result
     
     finally:

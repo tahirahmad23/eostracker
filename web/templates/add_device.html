@@ -1,51 +1,88 @@
 {% extends "base.html" %}
 
-{% block title %}Provision Device - EOS Tracker{% endblock %}
+{% block title %}ADD DEVICE - EOS Tracker{% endblock %}
 
 {% block extra_head %}
 <!-- TomSelect CSS for searchable dropdown (overridden for terminal look) -->
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 <style>
     /* Override TomSelect to look like a terminal input */
-    .ts-control {
-        background: #fff;
-        border: 1px solid #333;
-        border-radius: 4px;
-        font-family: var(--font-sans);
-        padding: 12px;
-        min-height: 44px;
-        font-size: 16px;
+    .ts-wrapper {
+        width: 100%;
     }
 
-    .ts-wrapper.focus .ts-control {
-        border-color: var(--color-primary);
-        box-shadow: none;
+    .ts-control {
+        background: #fff !important;
+        border: 1px solid #333 !important;
+        border-radius: 4px !important;
+        font-family: var(--font-sans) !important;
+        padding: 12px !important;
+        min-height: 44px !important;
+        font-size: 16px !important;
+        box-shadow: none !important;
+    }
+
+    .ts-wrapper.single .ts-control {
+        background: #fff !important;
+    }
+
+    .ts-wrapper.focus .ts-control,
+    .ts-wrapper.dropdown-active .ts-control {
+        border-color: var(--color-primary) !important;
+        box-shadow: none !important;
+    }
+
+    .ts-control input {
+        font-size: 16px !important;
     }
 
     .ts-dropdown {
-        border: 1px solid #333;
-        border-radius: 4px;
-        font-family: var(--font-sans);
-        margin-top: 0;
-        font-size: 14px;
+        border: 1px solid #333 !important;
+        border-radius: 4px !important;
+        font-family: var(--font-sans) !important;
+        margin-top: 4px !important;
+        font-size: 14px !important;
+        background: #fff !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .ts-dropdown .option {
+        padding: 8px 12px !important;
     }
 
     .ts-dropdown .active {
-        background-color: #eee;
-        color: #000;
+        background-color: #f0f0f0 !important;
+        color: #000 !important;
     }
-    
+
+    .ts-dropdown .option:hover {
+        background-color: #f9f9f9 !important;
+    }
+
+    /* Hide the duplicate wrapper box */
+    .ts-wrapper.form-control,
+    .ts-wrapper.form-select {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
     @media (min-width: 1024px) {
         .ts-control {
-            font-family: var(--font-mono);
-            padding: 8px 12px;
-            font-size: 14px;
-            border-radius: 0;
+            font-family: var(--font-mono) !important;
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+            border-radius: 0 !important;
         }
-        
+
+        .ts-control input {
+            font-size: 14px !important;
+        }
+
         .ts-dropdown {
-            border-radius: 0;
-            font-family: var(--font-mono);
+            border-radius: 0 !important;
+            font-family: var(--font-mono) !important;
+            margin-top: 0 !important;
         }
     }
 </style>
@@ -55,7 +92,7 @@
 {% block content %}
 <div class="mobile-card"
     style="max-width: 600px; margin: 40px auto; border: 1px solid var(--border-color); padding: 30px; background: #fafafa;">
-    <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 25px;">> PROVISION_NEW_ASSET</h3>
+    <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 25px;">> ADD_DEVICE</h3>
 
     <form action="/tracking/add" method="POST">
         <div style="margin-bottom: 20px;">
@@ -71,12 +108,14 @@
         </div>
 
         <div style="margin-bottom: 20px;">
-            <label class="mono text-sm" style="display: block; margin-bottom: 4px;">ASSET_TAG / CUSTOM_NAME (OPTIONAL):</label>
+            <label class="mono text-sm" style="display: block; margin-bottom: 4px;">CUSTOM_NAME
+                (OPTIONAL):</label>
             <input type="text" name="custom_name" placeholder="e.g. CORE_ROUTER_01">
         </div>
 
         <div style="margin-bottom: 25px;">
-            <label class="mono text-sm" style="display: block; margin-bottom: 4px;">ANNOTATIONS / NOTES (OPTIONAL):</label>
+            <label class="mono text-sm" style="display: block; margin-bottom: 4px;">NOTES
+                (OPTIONAL):</label>
             <textarea name="notes" rows="3"
                 style="width: 100%; border: 1px solid #333; padding: 12px; font-family: var(--font-sans); font-size: 16px; border-radius: 4px; min-height: 100px;"
                 placeholder="# RACK_LOCATION: ..."></textarea>

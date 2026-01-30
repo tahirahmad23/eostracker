@@ -17,10 +17,10 @@
         <dt>ACCOUNT_CREATED</dt>
         <dd class="mono">{{ current_user.created_at.strftime('%Y-%m-%d') }}</dd>
 
-        <dt>LICENSE_TIER</dt>
+        <dt>SUBSCRIPTION_TIER</dt>
         <dd>
             {% if current_user.tier == "pro" %}
-            <span class="badge badge-active">PRO_LICENSE</span>
+            <span class="badge badge-active">PRO</span>
             {% else %}
             <span class="badge">FREE_TIER</span>
             {% endif %}
@@ -35,8 +35,7 @@
 
             <form action="/logout" method="POST" style="display:inline; margin: 0;">
                 <button type="submit"
-                    style="background: #fff; border: 1px solid #333; color: #333; padding: 12px 15px; font-family: var(--font-display); font-size: 13px; cursor: pointer; border-radius: 4px;">[
-                    TERMINATE_SESSION ]</button>
+                    style="background: #fff; border: 1px solid #333; color: #333; padding: 12px 15px; font-family: var(--font-display); font-size: 13px; cursor: pointer; border-radius: 4px;">[LOGOUT]</button>
             </form>
         </div>
     </div>

@@ -185,6 +185,8 @@ def check_user_alerts(user_id: int, db: Session) -> Result:
             
             if email_result["success"]:
                 total_alerts_sent += len(devices)
+            
+            
         
         db.commit()
         

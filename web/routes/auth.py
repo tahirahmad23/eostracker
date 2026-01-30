@@ -194,7 +194,7 @@ def logout_user(request: Request):
     redirect = RedirectResponse(url="/", status_code=303)
     redirect.delete_cookie("access_token", path="/") # Fix: Ensure deletion matches the path
     
-    set_flash_message(request, "You have been logged out successfully", "success")
+    
     
     return redirect
 

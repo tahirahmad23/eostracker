@@ -1,50 +1,53 @@
 {% extends "base.html" %}
 
-{% block title %}Query Database - EOS Tracker{% endblock %}
+{% block title %}Search Devices - EOS Tracker{% endblock %}
 
 {% block content %}
 <div class="grid-sidebar">
     <!-- Sidebar / Query Parameters -->
     <div>
-        <h2>> QUERY_PARAMS</h2>
-        <form action="/search" method="GET" class="mobile-card"
-            style="background: #fafafa; padding: 20px; border: 1px solid var(--border-color);">
-            <div style="margin-bottom: 20px;">
-                <label class="mono text-sm" style="display: block; margin-bottom: 4px;">KEYWORD_SEARCH:</label>
-                <input type="text" name="q" value="{{ query }}" placeholder="*">
-            </div>
+        <h2>> FILTERS<h2>
+                <form action="/search" method="GET" class="mobile-card"
+                    style="background: #fafafa; padding: 20px; border: 1px solid var(--border-color);">
+                    <div style="margin-bottom: 20px;">
+                        <label class="mono text-sm" style="display: block; margin-bottom: 4px;">KEYWORD_SEARCH:</label>
+                        <input type="text" name="q" value="{{ query }}" placeholder="*">
+                    </div>
 
-            <div style="margin-bottom: 20px;">
-                <label class="mono text-sm" style="display: block; margin-bottom: 4px;">FILTER_VENDOR:</label>
-                <select name="vendor">
-                    <option value="">[ALL_VENDORS]</option>
-                    {% for vendor in vendors %}
-                    <option value="{{ vendor }}" {% if selected_vendor==vendor %}selected{% endif %}>{{ vendor }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+                    <div style="margin-bottom: 20px;">
+                        <label class="mono text-sm" style="display: block; margin-bottom: 4px;">FILTER_VENDOR:</label>
+                        <select name="vendor">
+                            <option value="">[ALL_VENDORS]</option>
+                            {% for vendor in vendors %}
+                            <option value="{{ vendor }}" {% if selected_vendor==vendor %}selected{% endif %}>{{ vendor
+                                }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <div style="margin-bottom: 20px;">
-                <label class="mono text-sm" style="display: block; margin-bottom: 4px;">FILTER_TYPE:</label>
-                <select name="device_type">
-                    <option value="">[ALL_TYPES]</option>
-                    {% for type in device_types %}
-                    <option value="{{ type }}" {% if selected_type==type %}selected{% endif %}>{{ type }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                    <div style="margin-bottom: 20px;">
+                        <label class="mono text-sm" style="display: block; margin-bottom: 4px;">FILTER_TYPE:</label>
+                        <select name="device_type">
+                            <option value="">[ALL_TYPES]</option>
+                            {% for type in device_types %}
+                            <option value="{{ type }}" {% if selected_type==type %}selected{% endif %}>{{ type }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <button type="submit"
-                style="width: 100%; background: #333; color: #fff; padding: 12px; border: none; font-family: var(--font-display); cursor: pointer; border-radius: 4px;">>
-                EXECUTE_QUERY</button>
-        </form>
+                    <button type="submit"
+                        style="width: 100%; background: #333; color: #fff; padding: 12px; border: none; font-family: var(--font-display); cursor: pointer; border-radius: 4px;">>
+                        APPLY_FILTERS</button>
+                </form>
     </div>
 
     <!-- Main Results -->
     <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;">
-            <h2 style="margin: 0;">> RESULTS_BUFFER</h2>
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;">
+            <h2 style="margin: 0;">> RESULTS</h2>
             <span class="mono text-sm">TOTAL_RECORDS: {{ total }}</span>
         </div>
 
@@ -65,15 +68,18 @@
                     {% for device in devices %}
                     <tr>
                         <td data-label="MODEL">
-                            <a href="/device/{{ device.slug }}" style="font-weight: bold; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center;">{{ device.model }}</a>
+                            <a href="/device/{{ device.slug }}"
+                                style="font-weight: bold; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center;">{{
+                                device.model }}</a>
                         </td>
                         <td data-label="VENDOR" class="mono text-sm">{{ device.vendor }}</td>
                         <td data-label="TYPE" class="mono text-sm">{{ device.device_type }}</td>
                         <td data-label="EOS DATE" class="mono">{{ device.eos_date }}</td>
-                        <td data-label="REMAINING" class="mono" style="text-align: right;">{{ device.days_until_eos }}d</td>
+                        <td data-label="REMAINING" class="mono" style="text-align: right;">{{ device.days_until_eos }}d
+                        </td>
                         <td data-label="STATUS">
                             {% if device.status == "active" %}
-                            <span class="badge badge-active">OK</span>
+                            <span class="badge badge-active">{{ device.status }}</span>
                             {% elif device.status == "approaching" %}
                             <span class="badge badge-warn">WARN</span>
                             {% else %}
@@ -88,25 +94,28 @@
 
         <!-- Pagination -->
         {% if pages > 1 %}
-        <div style="margin-top: 20px; text-align: center; font-family: var(--font-display); font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div
+            style="margin-top: 20px; text-align: center; font-family: var(--font-display); font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap;">
             {% if page > 1 %}
-            <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page - 1 }}" 
-               style="padding: 8px 16px; min-height: 44px; display: inline-flex; align-items: center;">[PREV]</a>
+            <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page - 1 }}"
+                style="padding: 8px 16px; min-height: 44px; display: inline-flex; align-items: center;">[PREV]</a>
             {% endif %}
 
             <span style="margin: 0 10px;">PAGE {{ page }} OF {{ pages }}</span>
 
-            {% if page < pages %}
-            <a href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page + 1 }}"
-               style="padding: 8px 16px; min-height: 44px; display: inline-flex; align-items: center;">[NEXT]</a>
-            {% endif %}
+            {% if page < pages %} <a
+                href="/search?q={{ query }}&vendor={{ selected_vendor or '' }}&device_type={{ selected_type or '' }}&page={{ page + 1 }}"
+                style="padding: 8px 16px; min-height: 44px; display: inline-flex; align-items: center;">[NEXT]</a>
+                {% endif %}
         </div>
         {% endif %}
 
         {% else %}
-        <div class="mobile-card" style="text-align: center; padding: 50px; background: #fafafa; border: 1px solid #eee;">
+        <div class="mobile-card"
+            style="text-align: center; padding: 50px; background: #fafafa; border: 1px solid #eee;">
             <p class="mono">[NULL_SET] NO_MATCHING_RECORDS_FOUND</p>
-            <a href="/search" style="text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; padding: 8px; margin-top: 12px;">[RESET_FILTERS]</a>
+            <a href="/search"
+                style="text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; padding: 8px; margin-top: 12px;">[RESET_FILTERS]</a>
         </div>
         {% endif %}
     </div>

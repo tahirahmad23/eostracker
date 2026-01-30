@@ -37,7 +37,8 @@
                         {% if current_user and current_user.tier != "pro" %}
                         <span class="mono">[CURRENT]</span>
                         {% elif not current_user %}
-                        <a href="/register" style="background: #333; color: #fff; padding: 8px 10px; text-decoration: none; display: inline-block; border-radius: 4px; font-family: var(--font-display); font-size: 12px;">[INIT_ACCOUNT]</a>
+                        <a href="/register"
+                            style="background: #333; color: #fff; padding: 8px 10px; text-decoration: none; display: inline-block; border-radius: 4px; font-family: var(--font-display); font-size: 12px;">[GET_STARTED]</a>
                         {% endif %}
                     </td>
                     <td data-label="PRO">
