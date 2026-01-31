@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Query,Request
 from fastapi.responses import Response, JSONResponse,RedirectResponse
 from sqlalchemy.orm import Session
 from typing import Optional
-from alerts.integration import trigger_immediate_alert_check
+from alerts.integration import trigger_immediate_alert_check,trigger_bulk_alert_check
  
 from database import User, get_db
 from auth import get_current_user_optional
@@ -217,8 +217,10 @@ async def api_import_csv(
     result = import_from_csv(current_user.id, csv_content, db)
     
     if result["success"]:
-        trigger_immediate_alert_check(current_user.id)
-
+        # TODO: For bulk imports, consider triggering critical checks for imported devices
+        # For now, imported devices will be picked up by the daily scheduled check
+        # or users can manually track devices one-by-one to get immediate critical alerts
+        trigger_bulk_alert_check(current_user.id, result["imported_device_ids"])
         set_flash_message(request, result["data"])
         return RedirectResponse(url="/tracking", status_code=303)
     elif "Pro feature" in result["error"]:

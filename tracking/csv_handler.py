@@ -88,6 +88,7 @@ def import_from_csv(
         csv_text = csv_file.decode('utf-8')
         csv_reader = csv.DictReader(io.StringIO(csv_text))
         
+        imported_device_ids = []
         imported_count = 0
         skipped_count = 0
         error_list = []
@@ -164,6 +165,7 @@ def import_from_csv(
                 
                 if result["success"]:
                     imported_count += 1
+                    imported_device_ids.append(result["data"]["id"])
                 else:
                     # Handle tier limit or other errors
                     error_msg = result["error"]
@@ -182,7 +184,8 @@ def import_from_csv(
         
         return {
             "success": True,
-            "data": f"imported: {imported_count}, skipped: {skipped_count}"
+            "data": f"imported: {imported_count}, skipped: {skipped_count}",
+            "imported_device_ids": imported_device_ids
             }
     
     except UnicodeDecodeError:

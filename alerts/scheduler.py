@@ -1,10 +1,13 @@
 """
 Scheduler Configuration - Module 6
 Configures APScheduler to run daily alert checks at user-defined UTC time.
+Also handles debounced immediate alerts for newly-added critical devices.
 """
 
 import os
+import time
 import logging
+from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.triggers.cron import CronTrigger
@@ -22,6 +25,9 @@ logger = logging.getLogger(__name__)
 
 # Scheduler instance (singleton)
 _scheduler = None
+
+# Pending immediate alert checks - {user_id: {"job_id": str, "tracked_device_ids": set()}}
+_pending_critical_checks = {}
 
 
 # MODULE-LEVEL FUNCTION (required for APScheduler pickling)
@@ -49,6 +55,58 @@ def run_scheduled_alert_check():
     
     except Exception as e:
         logger.error(f"Exception during alert check: {str(e)}", exc_info=True)
+    
+    finally:
+        db.close()
+
+
+def execute_debounced_critical_check(user_id: int):
+    """
+    Execute debounced critical device check for a specific user.
+    
+    This must be at module level (not nested) so APScheduler can pickle it.
+    Called after 10-minute debounce period when user adds devices.
+    
+    Args:
+        user_id: User ID to check critical devices for
+    """
+    global _pending_critical_checks
+    
+    logger.info(f"Executing debounced critical check for user {user_id}...")
+    
+    # Get the tracked device IDs from pending checks
+    if user_id not in _pending_critical_checks:
+        logger.warning(f"No pending critical checks found for user {user_id}")
+        return
+    
+    tracked_device_ids = list(_pending_critical_checks[user_id]["tracked_device_ids"])
+    
+    # Clear the pending check
+    del _pending_critical_checks[user_id]
+    
+    # Execute the check
+    db = SessionLocal()
+    try:
+        from alerts.service import check_critical_tracked_devices
+        
+        result = check_critical_tracked_devices(user_id, tracked_device_ids, db)
+        
+        if result["success"]:
+            if result["data"] > 0:
+                logger.info(
+                    f"✓ Sent {result['data']} critical alert(s) for user {user_id} "
+                    f"({len(tracked_device_ids)} devices checked)"
+                )
+            else:
+                logger.info(
+                    f"No critical alerts needed for user {user_id} "
+                    f"({len(tracked_device_ids)} devices checked)"
+                )
+        else:
+            logger.error(f"Critical check failed for user {user_id}: {result['error']}")
+    
+    except Exception as e:
+        logger.error(f"Exception during critical check for user {user_id}: {str(e)}", exc_info=True)
     
     finally:
         db.close()
@@ -254,37 +312,83 @@ def trigger_alert_check_now() -> dict:
         db.close()
 
 
-def check_user_alerts_now(user_id: int) -> dict:
+def trigger_immediate_critical_check(user_id: int, tracked_device_id: int) -> None:
     """
-    Immediately check and send alerts for a specific user.
-    Used when user adds a new device.
+    Trigger an immediate critical device check with 10-minute debouncing.
+    
+    When a user adds a device, this schedules a check for 10 minutes later.
+    If another device is added within 10 minutes, the timer resets and all
+    devices from the session are checked together.
+    
+    Only checks critical devices (EOS or <90 days) to avoid spam.
     
     Args:
-        user_id: User ID to check alerts for
-    
-    Returns:
-        Result dict from check_user_alerts
+        user_id: User ID who added the device
+        tracked_device_id: ID of the newly tracked device
     
     Example:
-        # After user adds device
-        result = check_user_alerts_now(user_id=123)
-        if result["success"] and result["data"] > 0:
-            print(f"Sent {result['data']} immediate alerts")
+        # After user adds a device
+        trigger_immediate_critical_check(user_id=123, tracked_device_id=456)
+        # Timer starts...
+        # User adds another device 2 minutes later
+        trigger_immediate_critical_check(user_id=123, tracked_device_id=789)
+        # Timer resets, both devices will be checked after 10 minutes
     """
-    from alerts.service import check_user_alerts
+    global _pending_critical_checks
     
-    logger.info("Checking alerts (triggered by device add)")
+    scheduler = get_scheduler()
+    if scheduler is None:
+        logger.debug("Scheduler not available, skipping critical check")
+        return
     
-    db = SessionLocal()
+    # If there's already a pending check for this user, cancel it
+    if user_id in _pending_critical_checks:
+        existing_job_id = _pending_critical_checks[user_id]["job_id"]
+        
+        try:
+            scheduler.remove_job(existing_job_id)
+            logger.debug(f"Cancelled existing critical check job {existing_job_id}")
+        except Exception as e:
+            logger.debug(f"Could not remove job {existing_job_id}: {e}")
+        
+        # Add new device to the existing set
+        _pending_critical_checks[user_id]["tracked_device_ids"].add(tracked_device_id)
+        logger.info(
+            f"Added device {tracked_device_id} to pending check for user {user_id} "
+            f"(total: {len(_pending_critical_checks[user_id]['tracked_device_ids'])} devices)"
+        )
+    else:
+        # Start a new pending check
+        _pending_critical_checks[user_id] = {
+            "job_id": None,
+            "tracked_device_ids": {tracked_device_id}
+        }
+        logger.info(f"Started new pending critical check for user {user_id}")
+    
+    # Schedule new job for 10 minutes from now
+    run_time = datetime.utcnow() + timedelta(minutes=1)
+    job_id = f"critical_check_{user_id}_{int(time.time() * 1000)}"
+    
     try:
-        result = check_user_alerts(user_id, db)
+        scheduler.add_job(
+            func='alerts.scheduler:execute_debounced_critical_check',
+            args=[user_id],
+            trigger='date',
+            run_date=run_time,
+            id=job_id,
+            replace_existing=False
+        )
         
-        if result["success"] and result["data"] > 0:
-            logger.info(f"Sent {result['data']} immediate alert(s)")
-        else:
-            logger.error(f"result: {result}")
+        _pending_critical_checks[user_id]["job_id"] = job_id
         
-        return result
+        logger.info(
+            f"✓ Scheduled critical check for user {user_id} at {run_time.strftime('%H:%M:%S UTC')} "
+            f"({len(_pending_critical_checks[user_id]['tracked_device_ids'])} device(s) pending)"
+        )
     
-    finally:
-        db.close()
+    except Exception as e:
+        logger.error(f"Failed to schedule critical check: {e}", exc_info=True)
+        # Clean up on failure
+        if user_id in _pending_critical_checks:
+            del _pending_critical_checks[user_id]
+

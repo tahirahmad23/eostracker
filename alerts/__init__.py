@@ -6,6 +6,7 @@ Provides email alerts, scheduling, and alert history tracking.
 from alerts.service import (
     check_and_send_alerts,
     check_user_alerts,
+    check_critical_tracked_devices,
     get_alert_history
 )
 
@@ -26,6 +27,7 @@ __all__ = [
     # Service functions
     'check_and_send_alerts',
     'check_user_alerts',
+    'check_critical_tracked_devices',
     'get_alert_history',
     
     # Email functions

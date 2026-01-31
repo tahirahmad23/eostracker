@@ -176,7 +176,8 @@ def add_device_to_tracking(
         
         set_flash_message(request, result["error"], "error")
     else:
-        trigger_immediate_alert_check(current_user.id)
+        # Trigger debounced critical alert check for the newly added device
+        trigger_immediate_alert_check(current_user.id, result["data"]["id"])
         set_flash_message(request, "Device added to tracking successfully", "success")
     
     return RedirectResponse(url="/tracking", status_code=303)

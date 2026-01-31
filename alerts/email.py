@@ -49,9 +49,14 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
     threshold = alert_messages.get(alert_type, f"{alert_type} days")
     device_count = len(devices)
     device_plural = "device" if device_count == 1 else "devices"
+    verb = "is" if device_count == 1 else "are"
     # Escape user name to prevent XSS
     safe_user_name = html_escape(user_name)
-    
+
+    if alert_type != "0":
+        msg = f'You have <strong>{device_count} {device_plural}</strong> reaching End-of-Support in less than <strong style="color: #dc2626;">{threshold}</strong>.'
+    else:
+        msg = f'You have <strong>{device_count} {device_plural}</strong> that {verb} <strong style="color: #dc2626;">No longer supported</strong>.'
     
     # Build device rows
     device_rows = ""
@@ -107,7 +112,7 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
                                 </p>
                                 
                                 <p style="font-size: 16px; color: #212529; margin: 0 0 20px 0;">
-                                    You have <strong>{device_count} {device_plural}</strong> reaching End-of-Support in approximately <strong style="color: #dc2626;">{threshold}</strong>.
+                                   {msg}
                                 </p>
                                 
                                 <div style="background-color: #fff3cd; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
@@ -139,7 +144,7 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
                                 </p>
                                 
                                 <div style="text-align: center; margin: 30px 0;">
-                                    <a href="https://eosalert.com/dashboard" style="background-color: #00699b; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-size: 16px; display: inline-block;">
+                                    <a href="https://eostracker.xyz/dashboard" style="background-color: #00699b; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-size: 16px; display: inline-block;">
                                         View Dashboard
                                     </a>
                                 </div>
@@ -153,7 +158,7 @@ def _create_alert_email_html(user_name: str, devices: List[Dict], alert_type: st
                                     You're receiving this email because you're tracking these devices on EOS Alert.
                                 </p>
                                 <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
-                                    <a href="https://eosalert.com/settings" style="color: #00699b; text-decoration: none;">Manage Alert Settings</a>
+                                    <a href="https://eostracker.xyz/settings" style="color: #00699b; text-decoration: none;">Manage Alert Settings</a>
                                 </p>
                             </td>
                         </tr>
@@ -260,13 +265,13 @@ def _create_welcome_email_html(user_name: str) -> str:
                                 </div>
                                 
                                 <div style="text-align: center; margin: 40px 0 20px 0;">
-                                    <a href="https://eosalert.com/dashboard" style="background-color: #00699b; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 18px; display: inline-block; font-weight: bold;">
+                                    <a href="https://eostracker.xyz/dashboard" style="background-color: #00699b; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 18px; display: inline-block; font-weight: bold;">
                                         Go to Dashboard
                                     </a>
                                 </div>
                                 
                                 <p style="font-size: 14px; color: #666; margin: 30px 0 0 0; text-align: center;">
-                                    Need help? Reply to this email or visit our <a href="https://eosalert.com/help" style="color: #00699b;">Help Center</a>
+                                    Need help? Reply to this email or visit our <a href="https://eostracker.xyz/help" style="color: #00699b;">Help Center</a>
                                 </p>
                             </td>
                         </tr>
@@ -341,10 +346,12 @@ def send_alert_email(
             "90": "3 Months",
             "30": "30 Days"
         }
-        
-        threshold_label = alert_labels.get(alert_type, f"{alert_type} days")
-        subject = f"⚠️ EOS Alert: {device_count} {device_plural} reaching End-of-Support in {threshold_label}"
-        
+        if alert_type != "0":
+            threshold_label = alert_labels.get(alert_type, f"{alert_type} days")
+            subject = f"⚠️ EOS Alert: {device_count} {device_plural} reaching End-of-Support in {threshold_label}"
+        else:
+            subject = f'EOS Alert: {device_count} {device_plural} is no longer supported'
+
         # Send email via Resend
         params = {
             "from": FROM_EMAIL,

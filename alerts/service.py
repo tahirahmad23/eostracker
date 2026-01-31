@@ -126,7 +126,7 @@ def check_user_alerts(user_id: int, db: Session) -> Result:
             for alert_type, threshold in alert_thresholds.items():
                 # Check if we should send this alert
                 # Alert if days_until_eos is within 1 day of threshold (to account for daily checks)
-                if abs(days_until_eos - threshold) <= 1:
+                if days_until_eos - threshold <= 1:
                     # Check if alert already sent
                     already_sent = db.query(AlertHistory).filter(
                         and_(
@@ -200,6 +200,148 @@ def check_user_alerts(user_id: int, db: Session) -> Result:
         return {
             "success": False,
             "error": f"Failed to check user alerts: {str(e)}"
+        }
+
+
+def check_critical_tracked_devices(user_id: int, tracked_device_ids: List[int], db: Session) -> Result:
+    """
+    Check specific newly-added tracked devices for critical alerts.
+    
+    Only sends alerts for devices that are:
+    - Already at End of Support (days <= 0), OR
+    - Approaching EOS within 90 days
+    
+    This is different from the scheduled check which checks all thresholds.
+    This function is called after user adds devices (with debouncing).
+    
+    Args:
+        user_id: User ID who added the devices
+        tracked_device_ids: List of TrackedDevice IDs to check
+        db: Database session
+    
+    Returns:
+        Result dict with:
+        - success: True if check completed
+        - data: Number of alerts sent (int)
+        - error: Error message if failed
+    
+    Example:
+        # After user adds devices and debounce timer expires
+        result = check_critical_tracked_devices(123, [456, 789], db)
+        if result["success"]:
+            print(f"Sent {result['data']} critical alerts")
+    """
+    try:
+        # Get user
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return {"success": False, "error": "User not found"}
+        
+        critical_devices = []
+        
+        # Check each tracked device
+        for tracked_id in tracked_device_ids:
+            tracked = db.query(TrackedDevice).filter(
+                and_(
+                    TrackedDevice.id == tracked_id,
+                    TrackedDevice.user_id == user_id
+                )
+            ).first()
+            
+            if not tracked:
+                logger.warning(f"Tracked device {tracked_id} not found for user {user_id}")
+                continue
+            
+            # Get device info
+            device = db.query(Device).filter(Device.id == tracked.device_id).first()
+            if not device:
+                logger.warning(f"Device {tracked.device_id} not found")
+                continue
+            
+            # Calculate days until EOS
+            days_until_eos = calculate_days_until_eos(device.eos_date)
+            
+            # Only alert if critical (EOS or approaching within 90 days)
+            if days_until_eos <= 90:
+                # Determine which alert type to use based on days
+                if days_until_eos <= 0:
+                    # Already at EOS t
+                    alert_type = "0"
+                elif days_until_eos <= 30:
+                    alert_type = AlertType.DAYS_30
+                else:  # days_until_eos <= 90
+                    alert_type = AlertType.DAYS_90
+                
+
+                
+
+                critical_devices.append({
+                    "tracked_device_id": tracked.id,
+                    "device_info": {
+                        "vendor": device.vendor,
+                        "model": device.model,
+                        "device_type": device.device_type,
+                        "eos_date": device.eos_date.strftime("%Y-%m-%d")
+                    },
+                    "custom_name": tracked.custom_name,
+                    "days_until_eos": days_until_eos,
+                    "alert_type": alert_type
+                })
+        
+        # No critical devices found
+        if not critical_devices:
+            logger.info(f"No critical alerts needed for user {user_id}")
+            return {"success": True, "data": 0}
+        
+        # Group devices by alert type
+        alerts_by_type = {}
+        for device in critical_devices:
+            alert_type = device["alert_type"]
+            if alert_type not in alerts_by_type:
+                alerts_by_type[alert_type] = []
+            alerts_by_type[alert_type].append(device)
+        
+        total_sent = 0
+        
+        # Send emails grouped by alert type
+        for alert_type, devices in alerts_by_type.items():
+            device_list = [{
+                "vendor": d["device_info"]["vendor"],
+                "model": d["device_info"]["model"],
+                "device_type": d["device_info"]["device_type"],
+                "eos_date": d["device_info"]["eos_date"],
+                "custom_name": d["custom_name"],
+                "days_until_eos": d["days_until_eos"]
+            } for d in devices]
+            
+            # Send email
+            email_result = send_alert_email(
+                user_email=user.email,
+                user_name=user.full_name,
+                devices=device_list,
+                alert_type=alert_type,
+                db=db
+            )
+            
+
+            
+            if email_result["success"]:
+                total_sent += len(devices)
+                logger.info(f"Sent {len(devices)} {alert_type} critical alerts for user {user_id}")
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "data": total_sent
+        }
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to check critical devices: {str(e)}", exc_info=True)
+        return {
+            "success": False,
+            "error": f"Failed to check critical devices: {str(e)}"
         }
 
 
