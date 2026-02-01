@@ -1,5 +1,5 @@
 # EOS Tracker: Comprehensive Project Documentation
-Version: 1.0.0
+Version: 1.1.0
 Date: 2026-02-01
 
 ---
@@ -15,7 +15,7 @@ Enterprise network infrastructure (Cisco routers, Juniper switches, Palo Alto fi
 ### 1.2 The Solution: EOS Tracker
 EOS Tracker is a centralized, automated platform designed for network engineers and IT managers. It eliminates the need for manual spreadsheets by providing:
 - A curated catalog of networking devices with accurate lifecycle dates.
-- An automated alerting system (Email-based) that notifies users 365, 180, 90, and 30 days before support ends.
+- An automated alerting system (Email-based) that notifies users at specific milestones.
 - Multi-format reporting (PDF, CSV, Excel) for inventory management.
 - A tiered subscription model (Free/Pro) to scale with business needs.
 
@@ -43,11 +43,12 @@ graph TD
     WebProxy <--> Auth[Auth Service / JWT]
     WebProxy <--> Routes[API / HTML Routes]
     
-    subgraph Services
+    subgraph Modules
         Routes <--> DeviceService[Device Catalog]
         Routes <--> TrackingService[User Tracking]
         Routes <--> SubscriptionService[Lemon Squeezy Integration]
         Routes <--> ReportService[PDF/CSV Generator]
+        Routes <--> AdminService[Admin Interface]
     end
     
     subgraph Data
@@ -68,97 +69,78 @@ graph TD
 
 ---
 
-## 3. Detailed Component Analysis
+## 3. Detailed Module Analysis (9 Components)
 
-### 3.1 Database Layer (`database/`)
-The database uses a clean normalized structure to handle thousands of devices and users.
+### 3.1 Module 1: `admin` (Administration Interface)
+Provides a secure backend for managing system data without direct database access.
+- **Purpose**: Internal management of users, devices, and financial records.
+- **Key Files**:
+    - [views.py](file:///c:/Users/HP/Downloads/eostracker/admin/views.py): Defines `ModelView` classes for SQLAdmin. Includes custom formatters for dates and logic to hash passwords when editing users.
+    - [auth.py](file:///c:/Users/HP/Downloads/eostracker/admin/auth.py): Implements `AdminAuth` backend. Verifies admin flags and manages session-based login for the admin panel.
+- **Security**: Uses a separate session-based cookie mechanism from the main app, requiring explicit `is_admin` status.
 
-#### [models.py](file:///c:/Users/HP/Downloads/eostracker/database/models.py) - Data Schema
-- **User**: Stores profile, hashed password, and current `UserTier` (Free/Pro).
-- **Device**: The master catalog. Fields include `vendor`, `model`, `device_type`, `eos_date`, `eol_date`, and a unique `slug` for SEO.
-- **TrackedDevice**: A join table mapping Users to Devices. Includes `custom_name` (e.g., "Main Core Switch") and `notes`.
-- **Subscription**: Linked to Lemon Squeezy. Tracks `status` (active/cancelled), `current_period_end`, and external IDs.
-- **AlertHistory**: Tracks every email sent to prevent duplicate alerts.
+### 3.2 Module 2: `alerts` (Notification Engine)
+The core "active" part of the system that monitors dates and sends emails.
+- **Push vs. Scheduled**: Combines daily global checks with "debounced" immediate checks when new devices are added.
+- **Key Files**:
+    - [service.py](file:///c:/Users/HP/Downloads/eostracker/alerts/service.py): The business logic. Calculates days until EOS and matches them against thresholds (365, 180, 90, 30 days).
+    - [scheduler.py](file:///c:/Users/HP/Downloads/eostracker/alerts/scheduler.py): Configures APScheduler with a PostgreSQL job store to ensure tasks survive restarts.
+    - [email.py](file:///c:/Users/HP/Downloads/eostracker/alerts/email.py): Integration with the **Resend API**. Handles HTML template rendering for alerts and welcome emails.
+    - [integration.py](file:///c:/Users/HP/Downloads/eostracker/alerts/integration.py): Provides a bridge for other services to trigger alert checks (e.g., after a CSV import).
 
-#### [validators.py](file:///c:/Users/HP/Downloads/eostracker/database/validators.py) - Data Integrity
-Custom validation logic for the device catalog:
-- Ensures `eos_date` is in `YYYY-MM-DD` format.
-- Validates that `eol_date` (if present) is always after `eos_date`.
-- Enforces uniqueness on vendor/model combinations via slug validation.
+### 3.3 Module 3: `auth` (Identity & Security)
+Manages user sessions, credentials, and access control.
+- **Role**: Stateless authentication using JWTs.
+- **Key Files**:
+    - [security.py](file:///c:/Users/HP/Downloads/eostracker/auth/security.py): Core crypto logic using `bcrypt` (rounds=12) and `PyJWT`. Handles token creation and expiration.
+    - [dependencies.py](file:///c:/Users/HP/Downloads/eostracker/auth/dependencies.py): FastAPI dependencies. `get_current_user` extracts JWTs from BOTH headers and cookies, enabling seamless API and Browser usage. Includes `require_pro_tier` decorator.
 
-#### [device_cli.py](file:///c:/Users/HP/Downloads/eostracker/database/device_cli.py) - Catalog Management
-A powerful CLI tool for maintainers to:
-- `update`: Sync JSON data files with the DB (supports `--dry-run`).
-- `validate`: Pre-check JSON files before import.
-- `export`: Dump the current catalog to JSON.
-- `stats`: View vendor distribution and date metrics.
+### 3.4 Module 4: `database` (Data Layer)
+The foundation of the platform, managing persistence and integrity.
+- **Structure**: Uses SQLAlchemy Declarative system with Type-Annotated models.
+- **Key Files**:
+    - [models.py](file:///c:/Users/HP/Downloads/eostracker/database/models.py): Defines the 5 core tables (`User`, `Device`, `TrackedDevice`, `Subscription`, `AlertHistory`).
+    - [connection.py](file:///c:/Users/HP/Downloads/eostracker/database/connection.py): Manages the connection pool (`QueuePool`) and the `get_db` dependency.
+    - [validators.py](file:///c:/Users/HP/Downloads/eostracker/database/validators.py): Ensures device data uploaded via CLI or CSV meets strict date and format requirements.
+    - [device_cli.py](file:///c:/Users/HP/Downloads/eostracker/database/device_cli.py): A maintenance tool for bulk updating the catalog from JSON files.
 
----
+### 3.5 Module 5: `devices` (Catalog Service)
+Handles the "Searchable Universe" of networking equipment.
+- **Role**: Optimized retrieval and filtering of the 100+ device catalog.
+- **Key Files**:
+    - [service.py](file:///c:/Users/HP/Downloads/eostracker/devices/service.py): Implements case-insensitive search (`ilike`) across multiple vendors and models. Handles pagination logic.
+    - [utils.py](file:///c:/Users/HP/Downloads/eostracker/devices/utils.py): Pure helper functions for generating SEO slugs (e.g., "cisco-catalyst-3850") and calculating statuses.
 
-### 3.2 Alert & Notification System (`alerts/`)
-The "Heart" of the application. It ensures users never miss a date.
+### 3.6 Module 6: `reports` (Reporting & Export)
+Generates business-ready documentation for users.
+- **Role**: Transforms raw tracking data into professional formats.
+- **Key Files**:
+    - [service.py](file:///c:/Users/HP/Downloads/eostracker/reports/service.py): Orchestrates PDF generation and CSV exports.
+    - [templates.py](file:///c:/Users/HP/Downloads/eostracker/reports/templates.py): Detailed **ReportLab** templates. Handles branding, table layouts, and conditional logic (Pro users get pie charts and bar graphs).
 
-#### [service.py](file:///c:/Users/HP/Downloads/eostracker/alerts/service.py) - The Alert Engine
-- **Daily Check**: Iterates through all users. Calculates `days_until_eos` for every tracked device.
-- **Threshold Matching**: Matches against 365, 180, 90, and 30-day milestones.
-- **Immediate Alerts**: Includes logic for "Debounced Immediate Checks." When a user adds a device that is *already* critical (<90 days), an alert is scheduled for 10 minutes later (to group multiple additions).
+### 3.7 Module 7: `subscription` (Monetization)
+Integrates with **Lemon Squeezy** for global payments.
+- **Role**: Manages the user's financial lifecycle.
+- **Key Files**:
+    - [lemonsqueezy.py](file:///c:/Users/HP/Downloads/eostracker/subscription/lemonsqueezy.py): REST client for the Lemon Squeezy API.
+    - [service.py](file:///c:/Users/HP/Downloads/eostracker/subscription/service.py): Business logic for creating checkouts and mapping external LS IDs to local `User` records.
+    - [webhooks.py](file:///c:/Users/HP/Downloads/eostracker/subscription/webhooks.py): Secure listener for LS events. Uses HMAC signature validation to process renewals, cancellations, and payment failures.
 
-#### [templates.py](file:///c:/Users/HP/Downloads/eostracker/reports/templates.py) - Reporting Engine (ReportLab)
-The reporting engine generates high-fidelity PDF documents using **ReportLab**.
-- **Dynamic Styling**: Uses `ParagraphStyle` for consistent typography across headers and footers.
-- **Visualizations (Pro Only)**:
-  - `Pie`: Renders vendor distribution charts.
-  - `VerticalBarChart`: Displays status breakdown (Active/Warning/Critical).
-- **Conditional Formatting**: Device tables in the PDF change row text colors based on EOS proximity (e.g., Red for <30 days).
+### 3.8 Module 8: `tracking` (User Inventory)
+Manages the specific devices a user has chosen to monitor.
+- **Role**: Pivot point between users and the master device catalog.
+- **Key Files**:
+    - [service.py](file:///c:/Users/HP/Downloads/eostracker/tracking/service.py): Enforces tier limits (max 3 for Free). Manages the `TrackedDevice` join table.
+    - [csv_handler.py](file:///c:/Users/HP/Downloads/eostracker/tracking/csv_handler.py): Handles bulk upload/download of tracked devices in CSV and Excel formats (a major Pro-tier selling point).
 
-#### [scheduler.py](file:///c:/Users/HP/Downloads/eostracker/alerts/scheduler.py) - Reliability
-- Uses `SQLAlchemyJobStore` to persist jobs in PostgreSQL. If the server restarts, pending alerts are not lost.
-- Runs the main check daily (default 9 AM UTC).
-- Configurable via `SCHEDULER_HOUR` and `SCHEDULER_MINUTE`.
-
----
-
-### 3.3 Subscription & Monetization (`subscription/`)
-Seamlessly integrates with Lemon Squeezy for a "Set and Forget" experience.
-
-#### [lemonsqueezy.py](file:///c:/Users/HP/Downloads/eostracker/subscription/lemonsqueezy.py) - API Wrapper
-- Handles secure checkout creation.
-- Manages subscription cancellation API calls.
-- Maps Lemon Squeezy Product/Variant IDs to the local environment.
-
-#### [webhooks.py](file:///c:/Users/HP/Downloads/eostracker/subscription/webhooks.py) - Lifecycle Events
-- **Security**: Validates every request using `HMAC SHA-256` signature verification.
-- **Events**:
-  - `subscription_created`: Atomically upgrades user to **PRO** tier.
-  - `subscription_updated`: Handles renewals and status changes.
-  - `subscription_payment_success`: Updates the `current_period_end` date.
-  - `subscription_cancelled / expired`: Gracefully downgrades user to **FREE** tier.
-
----
-
-### 3.4 Web & API Layer (`web/routes/`)
-A dual-purpose interface providing both a "Terminal" UI and a JSON API.
-
-#### [public.py](file:///c:/Users/HP/Downloads/eostracker/web/routes/public.py) - SEO & Discovery
-- **Homepage**: Displays featured devices and high-level stats.
-- **Search**: Advanced filtering by vendor and device type.
-- **Device Pages**: Uses [Structured Data (JSON-LD)](https://schema.org/Product) to ensure search engines index device dates correctly.
-
-#### [dashboard.py](file:///c:/Users/HP/Downloads/eostracker/web/routes/dashboard.py) - Analytics & Visuals
-The dashboard provides a high-level overview of network health:
-- **Health Score**: A weighted percentage (100 = all safe, <50 = critical issues) calculated dynamically.
-- **Risk Percentage**: Direct count of devices in 'warning' or 'not supported' status vs total.
-- **Timeline Logic**: Aggregates devices reaching EOS by month for the next 12 months for proactive planning.
-
-#### [auth.py](file:///c:/Users/HP/Downloads/eostracker/web/routes/auth.py) - Identity Management
-- **Persistent Sessions**: Supports "Remember Me" by adjusting JWT cookie expiration (30 min vs 7 days).
-- **Communication**: Triggers `send_welcome_email` upon successful registration.
-- **Flash Messages**: Uses a session-based flash system (`set_flash_message`) to provide user feedback across redirects (success/error alerts).
-
-#### [api.py](file:///c:/Users/HP/Downloads/eostracker/web/routes/api.py) - Functional Endpoints
-- Handles device tracking (Add/Remove).
-- **Import/Export**: Supports CSV and Excel via [Pandas](https://pandas.pydata.org/). (Pro feature).
-- **Report Generation**: Manages PDF/CSV generation requests.
+### 3.9 Module 9: `web` (Web Interface & Config)
+The user-facing layer and application entry point.
+- **Role**: Coordinates all modules and provides the UI.
+- **Key Files**:
+    - [config.py](file:///c:/Users/HP/Downloads/eostracker/web/config.py): Centralized Pydantic settings. Validates all `.env` variables on startup.
+    - [startup.py](file:///c:/Users/HP/Downloads/eostracker/web/startup.py): Event handlers that start/stop the alert scheduler when the web server cycles.
+    - [routes/](file:///c:/Users/HP/Downloads/eostracker/web/routes/): Contains the individual route modules (`public.py`, `dashboard.py`, `api.py`).
+    - [static/](file:///c:/Users/HP/Downloads/eostracker/web/static/): CSS and JS assets (Terminal theme, responsive tables).
 
 ---
 
@@ -201,10 +183,10 @@ The system is divided into three primary services:
     - Compresses backups.
     - Uses Git to push backups to a private **GitHub Repository** for offsite redundancy.
 
-### 4.2 Logging Configuration ([logging_config.py](file:///c:/Users/HP/Downloads/eostracker/logging_config.py))
+### 4.6 Logging Configuration ([logging_config.py](file:///c:/Users/HP/Downloads/eostracker/logging_config.py))
 - **Structured Logging**: Outputs logs in JSON format for easy parsing by ELK/Loki.
 - **Filter logic**: Redirects errors (ERROR+) to `stderr` and general info to `stdout`.
-- **Middleware**: Automatically logs request method, path, status, and duration (ms) without leaking PII (Personal Identifiable Information).
+- **Middleware**: Automatically logs request method, path, status, and duration (ms) without leaking PII.
 
 ---
 
@@ -233,8 +215,10 @@ The system is divided into three primary services:
 - **Alpine.js Integration**: Used for reactive components (though some logic is vanilla JS).
 - **UX Enhancements**:
     - `confirmRemove`: Custom dialogs for destructive actions.
-    - Viewport Height Fix`: Solves Safari mobile layout shifting.
+    - `Viewport Height Fix`: Solves Safari mobile layout shifting.
     - `Table Scroll Detection`: Adds visual cues when data tables exceed mobile screen width.
+
+---
 
 ## 7. Testing & Quality Assurance
 
@@ -252,6 +236,8 @@ Key libraries powering the platform:
 - `ReportLab`: Professional PDF generation.
 - `Pandas`: Powering the CSV/Excel import/export engine.
 
+---
+
 ## 8. Features & Tier Limits
 
 | Feature | Free Tier | Pro Tier |
@@ -265,24 +251,18 @@ Key libraries powering the platform:
 
 ---
 
-## 7. Operational Guides
+## 9. Operational Guides
 
-### 7.1 Seeding the Database
+### 9.1 Seeding the Database
 To populate the database with initial device data (~100 devices):
 ```powershell
 docker-compose exec web python -c "from database.seed_data import seed_devices; seed_devices()"
 ```
 
-### 7.2 Manual Backup Trigger
+### 9.2 Manual Backup Trigger
 To force an immediate backup to GitHub:
 ```powershell
 docker-compose exec db-backup /scripts/backup_and_sync.sh
-```
-
-### 7.3 Running Tests
-Comprehensive tests with coverage report:
-```powershell
-pytest --cov=. --cov-report=term-missing
 ```
 
 ---
