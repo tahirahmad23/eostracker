@@ -30,16 +30,31 @@
 
             <button onclick="document.getElementById('importUpload').click()"
                 style="background: #fff; border: 1px solid #333; color: #333; padding: 8px 15px; font-family: var(--font-display); font-size: 13px; cursor: pointer; border-radius: 4px;">[
-                IMPORT_CSV ]</button>
+                IMPORT ]</button>
             <form action="/api/tracking/import" method="POST" enctype="multipart/form-data" id="importForm"
                 style="display:none;">
                 <input type="file" name="file" id="importUpload" accept=".csv, .xlsx"
                     onchange="document.getElementById('importForm').submit()">
             </form>
 
-            <a href="/api/tracking/export?format=csv"
-                style="background: #fff; border: 1px solid #333; color: #333; padding: 8px 15px; font-family: var(--font-display); font-size: 13px; text-decoration: none; border-radius: 4px; display: inline-block;">[
-                EXPORT_CSV ]</a>
+            <!-- Export dropdown -->
+            <div style="position: relative; display: inline-block;">
+                <button onclick="toggleExportMenu()" id="exportButton"
+                    style="background: #fff; border: 1px solid #333; color: #333; padding: 8px 15px; font-family: var(--font-display); font-size: 13px; cursor: pointer; border-radius: 4px;">[
+                    EXPORT ▼ ]</button>
+
+                <div id="exportMenu"
+                    style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: #fff; border: 1px solid #333; border-radius: 4px; min-width: 150px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <a href="/api/tracking/export?format=csv" onclick="closeExportMenu()"
+                        style="display: block; padding: 10px 15px; font-family: var(--font-display); font-size: 13px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;"
+                        onmouseover="this.style.background='#f5f5f5'"
+                        onmouseout="this.style.background='#fff'">[CSV]</a>
+                    <a href="/api/tracking/export?format=excel" onclick="closeExportMenu()"
+                        style="display: block; padding: 10px 15px; font-family: var(--font-display); font-size: 13px; color: #333; text-decoration: none;"
+                        onmouseover="this.style.background='#f5f5f5'"
+                        onmouseout="this.style.background='#fff'">[EXCEL]</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -73,10 +88,24 @@
                 IMPORT
             </button>
 
-            <a href="/api/tracking/export?format=csv"
-                style="flex: 1; min-width: 100px; background: #fff; border: 1px solid #333; color: #333; padding: 12px; text-align: center; font-family: var(--font-display); font-size: 14px; text-decoration: none; border-radius: 4px;">
-                EXPORT
-            </a>
+            <!-- Mobile Export dropdown -->
+            <div style="position: relative; flex: 1; min-width: 100px;">
+                <button onclick="toggleExportMenuMobile()" id="exportButtonMobile"
+                    style="width: 100%; background: #fff; border: 1px solid #333; color: #333; padding: 12px; font-family: var(--font-display); font-size: 14px; cursor: pointer; border-radius: 4px;">
+                    EXPORT ▼
+                </button>
+
+                <div id="exportMenuMobile"
+                    style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: #fff; border: 1px solid #333; border-radius: 4px; min-width: 150px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <a href="/api/tracking/export?format=csv" onclick="closeExportMenuMobile()"
+                        style="display: block; padding: 12px 15px; font-family: var(--font-display); font-size: 14px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;"
+                        onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='#fff'">CSV</a>
+                    <a href="/api/tracking/export?format=excel" onclick="closeExportMenuMobile()"
+                        style="display: block; padding: 12px 15px; font-family: var(--font-display); font-size: 14px; color: #333; text-decoration: none;"
+                        onmouseover="this.style.background='#f5f5f5'"
+                        onmouseout="this.style.background='#fff'">EXCEL</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -120,9 +149,9 @@
                         </span>
                     </td>
                     <td data-label="STATUS">
-                        {% if device.device.status == "active" %}
-                        <span class="badge badge-active">OK</span>
-                        {% elif device.device.status == "approaching" %}
+                        {% if device.device.status == "safe" %}
+                        <span class="badge badge-active">SAFE</span>
+                        {% elif device.device.status == "approaching" or device.device.status == "warning" %}
                         <span class="badge badge-warn">WARN</span>
                         {% else %}
                         <span class="badge badge-crit">EOS</span>
@@ -158,4 +187,40 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+    function toggleExportMenu() {
+        var menu = document.getElementById('exportMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function closeExportMenu() {
+        document.getElementById('exportMenu').style.display = 'none';
+    }
+
+    function toggleExportMenuMobile() {
+        var menu = document.getElementById('exportMenuMobile');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function closeExportMenuMobile() {
+        document.getElementById('exportMenuMobile').style.display = 'none';
+    }
+
+    // Close dropdowns when clicking outside
+    window.addEventListener('click', function (e) {
+        if (!e.target.matches('#exportButton')) {
+            var menu = document.getElementById('exportMenu');
+            if (menu && menu.style.display === 'block') {
+                menu.style.display = 'none';
+            }
+        }
+        if (!e.target.matches('#exportButtonMobile')) {
+            var menuMobile = document.getElementById('exportMenuMobile');
+            if (menuMobile && menuMobile.style.display === 'block') {
+                menuMobile.style.display = 'none';
+            }
+        }
+    });
+</script>
 {% endblock %}

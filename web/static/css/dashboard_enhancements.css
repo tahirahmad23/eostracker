@@ -1,0 +1,171 @@
+/* ============================================
+   DASHBOARD ENHANCEMENTS
+   Additional styles for the killer dashboard
+   Add these to your terminal.css or include separately
+   ============================================ */
+
+/* Health Score Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.health-score-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Progress Bar Animations */
+@keyframes progressFill {
+    from {
+        width: 0%;
+    }
+}
+
+.progress-bar-animated {
+    animation: progressFill 1s ease-out;
+}
+
+/* Card Hover Effects */
+.interactive-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.interactive-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Status Indicator Pulse */
+.status-pulse {
+    position: relative;
+}
+
+.status-pulse::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 currentColor;
+        opacity: 0.6;
+    }
+    100% {
+        box-shadow: 0 0 0 10px currentColor;
+        opacity: 0;
+    }
+}
+
+/* Timeline Bar Grow Animation */
+@keyframes barGrow {
+    from {
+        width: 2px;
+    }
+}
+
+.timeline-bar {
+    animation: barGrow 0.6s ease-out;
+}
+
+/* Gradient Backgrounds */
+.gradient-safe {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+}
+
+.gradient-warn {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+}
+
+.gradient-crit {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+}
+
+/* Loading Skeleton */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Quick Action Button Effects */
+.quick-action-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-action-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.quick-action-btn:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 767px) {
+    /* Reduce animation complexity on mobile for performance */
+    .timeline-bar,
+    .progress-bar-animated {
+        animation: none;
+    }
+    
+    /* Larger touch targets */
+    .quick-action-btn {
+        min-height: 48px;
+        padding: 14px 18px;
+    }
+    
+    /* Better spacing for cards */
+    .dashboard-card {
+        margin-bottom: 16px;
+    }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .skeleton {
+        background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+        background-size: 200% 100%;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

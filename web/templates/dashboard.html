@@ -1,141 +1,290 @@
 {% extends "base.html" %}
 
-{% block title %}NOC Dashboard{% endblock %}
+{% block title %}Dashboard - EOS Tracker{% endblock %}
 
 {% block content %}
 <div>
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">> EOS_TRACKER</h2>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">> SYSTEM_STATUS</h2>
 
-    <!-- Top Stats Row (Responsive Grid) -->
-    <div class="mobile-card"
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px; background: var(--border-color); border: 1px solid var(--border-color); margin-bottom: 30px; padding: 0;">
-        <div style="text-align: center; padding: 15px; background: #fafafa;">
-            <div class="mono text-sm" style="color: #555; margin-bottom: 4px;">TOTAL_TRACKED</div>
-            <div style="font-size: 1.5rem; font-weight: bold; font-family: var(--font-display);">{{ total_devices }}
-            </div>
+    <!-- Compact Stats Grid - Desktop: Horizontal, Mobile: Stacked -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px;">
+        <div class="mobile-card"
+            style="text-align: center; padding: 16px; background: #fafafa; border: 1px solid #ddd;">
+            <div class="mono text-sm" style="color: #666; margin-bottom: 4px;">TOTAL</div>
+            <div style="font-size: 2rem; font-weight: bold; font-family: var(--font-display);">{{ total_devices }}</div>
         </div>
-        <div style="text-align: center; padding: 15px; background: #fafafa;">
-            <div class="mono text-sm" style="color: var(--color-active); margin-bottom: 4px;">ACTIVE</div>
+        <div class="mobile-card"
+            style="text-align: center; padding: 16px; background: rgba(5, 150, 105, 0.05); border: 1px solid var(--color-active);">
+            <div class="mono text-sm" style="color: var(--color-active); margin-bottom: 4px;">SAFE</div>
             <div
-                style="font-size: 1.5rem; font-weight: bold; font-family: var(--font-display); color: var(--color-active);">
-                {{ active_devices }}</div>
+                style="font-size: 2rem; font-weight: bold; font-family: var(--font-display); color: var(--color-active);">
+                {{ safe_devices }}</div>
         </div>
-        <div style="text-align: center; padding: 15px; background: #fafafa;">
+        <div class="mobile-card"
+            style="text-align: center; padding: 16px; background: rgba(217, 119, 6, 0.05); border: 1px solid var(--color-warn);">
             <div class="mono text-sm" style="color: var(--color-warn); margin-bottom: 4px;">WARNING</div>
             <div
-                style="font-size: 1.5rem; font-weight: bold; font-family: var(--font-display); color: var(--color-warn);">
-                {{
-                approaching_devices }}</div>
+                style="font-size: 2rem; font-weight: bold; font-family: var(--font-display); color: var(--color-warn);">
+                {{ warning_devices + approaching_devices }}</div>
         </div>
-        <div style="text-align: center; padding: 15px; background: #fafafa;">
+        <div class="mobile-card"
+            style="text-align: center; padding: 16px; background: rgba(220, 38, 38, 0.05); border: 1px solid var(--color-crit);">
             <div class="mono text-sm" style="color: var(--color-crit); margin-bottom: 4px;">CRITICAL</div>
             <div
-                style="font-size: 1.5rem; font-weight: bold; font-family: var(--font-display); color: var(--color-crit);">
-                {{
-                eos_devices }}</div>
+                style="font-size: 2rem; font-weight: bold; font-family: var(--font-display); color: var(--color-crit);">
+                {{ not_supported_devices }}</div>
         </div>
-    </div>
-
-    <div class="grid-2">
-        <!-- Upcoming Alerts (System Logs) -->
-        <div>
-            <h3>> UPCOMING_EOS_ALERTS (90_DAYS)</h3>
-            <div class="mobile-card"
-                style="border: 1px solid var(--border-color); max-height: 400px; overflow-y: auto; background: #fff; padding: 0;">
-                {% if upcoming_alerts %}
-                <div class="table-wrapper" style="margin: 0;">
-                    <table class="data-table" style="margin: 0;">
-                        <thead>
-                            <tr>
-                                <th>DEVICE</th>
-                                <th>EOS_DATE</th>
-                                <th>REMAINING</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for device in upcoming_alerts %}
-                            <tr>
-                                <td data-label="DEVICE" class="mono">{{ device.device.vendor }} {{ device.device.model
-                                    }}</td>
-                                <td data-label="EOS DATE" class="mono text-sm">{{ device.device.eos_date }}</td>
-                                <td data-label="REMAINING"><span class="badge badge-warn">{{
-                                        device.device.days_until_eos }}d</span></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div style="padding: 20px; text-align: center; color: #888;" class="mono">
-                    [NO_UPCOMING_EOS_ALERTS]</div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Recent Activity -->
-        <div>
-            <h3>> RECENTLY_TRACKED</h3>
-            <div class="mobile-card"
-                style="border: 1px solid var(--border-color); max-height: 400px; overflow-y: auto; background: #fff; padding: 0;">
-                {% if recent_devices %}
-                <div class="table-wrapper" style="margin: 0;">
-                    <table class="data-table" style="margin: 0;">
-                        <thead>
-                            <tr>
-                                <th>DEVICE</th>
-                                <th>ADDED_DATE</th>
-                                <th>STATUS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for device in recent_devices %}
-                            <tr>
-                                <td data-label="ASSET" class="mono">
-                                    {{ device.custom_name or (device.device.vendor + " " + device.device.model) }}
-                                </td>
-                                <td data-label="ADDED" class="mono text-sm">{{ device.added_at[:10] }}</td>
-                                <td data-label="STATUS">
-                                    {% if device.device.status == "active" %}
-                                    <span class="badge badge-active">OK</span>
-                                    {% elif device.device.status == "approaching" %}
-                                    <span class="badge badge-warn">WARN</span>
-                                    {% else %}
-                                    <span class="badge badge-crit">EOS</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div style="padding: 20px; text-align: center; color: #888;" class="mono">[LOGS_EMPTY]</div>
-                {% endif %}
+        <div class="mobile-card hide-mobile"
+            style="text-align: center; padding: 16px; background: linear-gradient(135deg, #f0f0f0 0%, #fafafa 100%); border: 1px solid #333;">
+            <div class="mono text-sm" style="color: #666; margin-bottom: 4px;">HEALTH</div>
+            <div
+                style="font-size: 2rem; font-weight: bold; font-family: var(--font-display); 
+                color: {% if health_score >= 80 %}var(--color-active){% elif health_score >= 50 %}var(--color-warn){% else %}var(--color-crit){% endif %};">
+                {{ health_score }}%
             </div>
         </div>
     </div>
 
-    <!-- Actions Bar -->
-    <div class="mobile-card"
-        style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; padding-left: 0; padding-right: 0;">
+    <!-- Desktop: Single Row Layout, Mobile: Stacked -->
+    <div class="dashboard-layout">
+        <!-- Left Column: Alerts -->
+        <div class="dashboard-main">
+            {% if critical_alerts %}
+            <!-- Critical Alerts - Compact -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 12px;">> CRITICAL [{{ critical_alerts|length }}]</h3>
+                <div class="mobile-card"
+                    style="background: #fff; border-left: 4px solid var(--color-crit); padding: 0; max-height: 240px; overflow-y: auto;">
+                    {% for device in critical_alerts %}
+                    <div
+                        style="padding: 10px 14px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="mono text-sm font-bold truncate">{{ device.custom_name or (device.device.vendor
+                                + " " + device.device.model) }}</div>
+                            <div class="mono text-xs text-secondary">{{ device.device.eos_date }}</div>
+                        </div>
+                        <span class="badge badge-crit" style="white-space: nowrap;">
+                            {% if device.device.days_until_eos < 0 %}EOS{% else %}{{ device.device.days_until_eos }}d{%
+                                endif %} </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="/tracking/add"
-                style="background: #333; color: #fff; padding: 12px 20px; font-family: var(--font-display); font-size: 13px; text-decoration: none; border-radius: 4px; display: inline-block;">[+
-                ADD_NEW_DEVICE]</a>
+            <!-- Upcoming Alerts - Compact -->
+            <div>
+                <h3 style="margin-bottom: 12px;">> UPCOMING (30-90d) [{{ upcoming_alerts|length }}]</h3>
+                <div class="mobile-card"
+                    style="background: #fff; border: 1px solid #ddd; padding: 0; max-height: 280px; overflow-y: auto;">
+                    {% if upcoming_alerts %}
+                    {% for device in upcoming_alerts %}
+                    <div
+                        style="padding: 10px 14px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="mono text-sm truncate">{{ device.custom_name or (device.device.vendor + " " +
+                                device.device.model) }}</div>
+                            <div class="mono text-xs text-secondary">{{ device.device.eos_date }}</div>
+                        </div>
+                        <span class="badge badge-warn" style="white-space: nowrap;">{{ device.device.days_until_eos
+                            }}d</span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div style="padding: 30px; text-align: center; color: #888;" class="mono text-sm">
+                        [NO_UPCOMING_ALERTS]</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-            <form action="/api/reports/generate" method="POST" style="display: inline; margin: 0;">
-                <button type="submit"
-                    style="background: #fff; border: 1px solid #333; color: #333; padding: 12px 20px; font-family: var(--font-display); font-size: 13px; cursor: pointer; border-radius: 4px;">[
-                    GEN_PDF_REPORT ]</button>
-            </form>
+        <!-- Right Column: Analytics & Actions -->
+        <div class="dashboard-sidebar">
+            <!-- Device Types - Compact -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 12px;">> BY_TYPE</h3>
+                <div class="mobile-card" style="background: #fff; border: 1px solid #ddd; padding: 14px;">
+                    {% if device_types %}
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for dtype, count in device_types.items() %}
+                        {% set type_status = device_types_status[dtype] %}
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span class="mono text-xs font-bold">{{ dtype.upper() }}</span>
+                                <span class="mono text-xs text-secondary">{{ count }}</span>
+                            </div>
+                            <div style="display: flex; height: 12px; background: #f0f0f0; border: 1px solid #ddd;">
+                                {% if type_status.safe > 0 %}
+                                <div
+                                    style="background: var(--color-active); width: {{ (type_status.safe / count * 100)|int }}%;">
+                                </div>
+                                {% endif %}
+                                {% if type_status.warning > 0 %}
+                                <div
+                                    style="background: var(--color-warn); width: {{ (type_status.warning / count * 100)|int }}%;">
+                                </div>
+                                {% endif %}
+                                {% if type_status.critical > 0 %}
+                                <div
+                                    style="background: var(--color-crit); width: {{ (type_status.critical / count * 100)|int }}%;">
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="padding: 20px; text-align: center; color: #888;" class="mono text-xs">[NO_DATA]</div>
+                    {% endif %}
+                </div>
+            </div>
 
-            {% if current_user.tier == "free" %}
-            <a href="/subscription"
-                style="background: var(--color-link); color: #fff; padding: 12px 20px; font-family: var(--font-display); font-size: 13px; text-decoration: none; border-radius: 4px; display: inline-block;">[
-                UPGRADE_LICENSE ]</a>
+            <!-- Timeline - Compact -->
+            <div style="margin-bottom: 20px;" class="hide-mobile">
+                <h3 style="margin-bottom: 12px;">> TIMELINE (6M)</h3>
+                <div class="mobile-card" style="background: #fff; border: 1px solid #ddd; padding: 14px;">
+                    {% if timeline_data %}
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        {% for month in timeline_data[:6] %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="mono text-xs" style="min-width: 40px; color: #666;">{{ month.month }}</span>
+                            <div
+                                style="flex: 1; height: 10px; background: #f0f0f0; border: 1px solid #ddd; position: relative;">
+                                {% if month.count > 0 %}
+                                <div style="height: 100%; background: {% if month.month_num == 0 %}var(--color-crit){% elif month.month_num <= 2 %}var(--color-warn){% else %}var(--color-active){% endif %}; 
+                                    width: {{ (month.count * 25)|int }}px; max-width: 100%;"></div>
+                                {% endif %}
+                            </div>
+                            <span class="mono text-xs" style="min-width: 12px;">{{ month.count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="padding: 20px; text-align: center; color: #888;" class="mono text-xs">[NO_DATA]</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions - Compact -->
+            <div>
+                <h3 style="margin-bottom: 12px;">> ACTIONS</h3>
+                <div class="mobile-card" style="background: #fafafa; border: 1px solid #333; padding: 14px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="/tracking/add"
+                            style="background: var(--color-active); color: #fff; padding: 10px 14px; font-family: var(--font-display); 
+                            font-size: 12px; text-decoration: none; border-radius: 3px; text-align: center; display: block;">
+                            [+ ADD_DEVICE]
+                        </a>
+                        <a href="/tracking"
+                            style="background: #fff; border: 1px solid #333; color: #333; padding: 10px 14px; font-family: var(--font-display); 
+                            font-size: 12px; text-decoration: none; border-radius: 3px; text-align: center; display: block;">
+                            [VIEW_ALL]
+                        </a>
+                        <form action="/api/reports/generate" method="POST" style="margin: 0;">
+                            <button type="submit"
+                                style="width: 100%; background: #fff; border: 1px solid #333; color: #333; padding: 10px 14px; 
+                                font-family: var(--font-display); font-size: 12px; cursor: pointer; border-radius: 3px;">
+                                [REPORT]
+                            </button>
+                        </form>
+                        {% if current_user.tier == "free" %}
+                        <a href="/subscription"
+                            style="background: var(--color-primary); color: #fff; padding: 10px 14px; font-family: var(--font-display); 
+                            font-size: 12px; text-decoration: none; border-radius: 3px; text-align: center; display: block;">
+                            [UPGRADE]
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity - Full Width, Compact -->
+    <div style="margin-top: 24px;" class="hide-mobile">
+        <h3 style="margin-bottom: 12px;">> RECENT_ACTIVITY</h3>
+        <div class="mobile-card" style="border: 1px solid #ddd; background: #fff; padding: 0;">
+            {% if recent_devices %}
+            <div style="display: flex; overflow-x: auto;">
+                {% for device in recent_devices %}
+                <div style="min-width: 200px; padding: 12px; border-right: 1px solid #f0f0f0;">
+                    <div class="mono text-sm font-bold truncate">{{ device.custom_name or device.device.model }}</div>
+                    <div class="mono text-xs text-secondary" style="margin: 4px 0;">{{ device.device.device_type }}
+                    </div>
+                    <div>
+                        {% if device.device.status == "safe" %}
+                        <span class="badge badge-active" style="font-size: 10px;">SAFE</span>
+                        {% elif device.device.status in ["approaching", "warning"] %}
+                        <span class="badge badge-warn" style="font-size: 10px;">WARN</span>
+                        {% else %}
+                        <span class="badge badge-crit" style="font-size: 10px;">EOS</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="padding: 20px; text-align: center; color: #888;" class="mono text-sm">[NO_ACTIVITY]</div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+    /* Desktop Layout */
+    @media (min-width: 1024px) {
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+    }
+
+    /* Mobile Layout - Stack Everything */
+    @media (max-width: 1023px) {
+        .dashboard-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dashboard-sidebar {
+            display: none;
+            /* Hide sidebar on mobile for minimalism */
+        }
+    }
+
+    /* Scrollbar styling */
+    .mobile-card::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .mobile-card::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .mobile-card::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+
+    .mobile-card::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* Hover effects for desktop only */
+    @media (min-width: 1024px) {
+        a[style*="background: var(--color-active)"]:hover {
+            opacity: 0.9;
+        }
+
+        a[style*="border: 1px solid #333"]:hover,
+        button[style*="border: 1px solid #333"]:hover {
+            background: #f5f5f5 !important;
+        }
+    }
+</style>
 {% endblock %}

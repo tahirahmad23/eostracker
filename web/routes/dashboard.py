@@ -8,6 +8,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import datetime, timedelta
+from collections import defaultdict
 
 from database import get_db,User
 from auth import get_current_user_optional
@@ -33,24 +35,85 @@ def dashboard(
     db: Session = Depends(get_db)
 ):
     """
-    User dashboard with statistics and quick actions
+    Enhanced user dashboard with comprehensive statistics and visualizations
     """
 
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
+    
     # Get tracked devices
     tracked_result = get_user_tracked_devices(current_user.id, db)
     tracked_devices = tracked_result["data"] if tracked_result["success"] else []
     
-    # Calculate statistics
+    # Calculate basic statistics
     total_devices = len(tracked_devices)
-    active_devices = len([d for d in tracked_devices if d["device"]["status"] == "active"])
+    safe_devices = len([d for d in tracked_devices if d["device"]["status"] == "safe"])
+    warning_devices = len([d for d in tracked_devices if d["device"]["status"] == "warning"])
     approaching_devices = len([d for d in tracked_devices if d["device"]["status"] == "approaching"])
-    eos_devices = len([d for d in tracked_devices if d["device"]["status"] == "end_of_support"])
+    not_supported_devices = len([d for d in tracked_devices if d["device"]["status"] == "not supported"])
     
-    # Get upcoming alerts (devices with EOS in next 90 days)
-    upcoming_alerts = [d for d in tracked_devices if 0 < d["device"]["days_until_eos"] <= 90]
+    # Critical alerts (EOS or <30 days)
+    critical_alerts = [
+        d for d in tracked_devices 
+        if d["device"]["days_until_eos"] < 30
+    ]
+    critical_alerts.sort(key=lambda x: x["device"]["days_until_eos"])
+    
+    # Upcoming alerts (30-90 days)
+    upcoming_alerts = [
+        d for d in tracked_devices 
+        if 30 <= d["device"]["days_until_eos"] <= 90
+    ]
     upcoming_alerts.sort(key=lambda x: x["device"]["days_until_eos"])
+    
+    # Device type breakdown
+    device_types = defaultdict(int)
+    device_types_status = defaultdict(lambda: {"safe": 0, "warning": 0, "critical": 0})
+    
+    for device in tracked_devices:
+        device_type = device["device"]["device_type"]
+        device_types[device_type] += 1
+        
+        # Categorize by severity
+        if device["device"]["days_until_eos"] < 30:
+            device_types_status[device_type]["critical"] += 1
+        elif device["device"]["days_until_eos"] < 90:
+            device_types_status[device_type]["warning"] += 1
+        else:
+            device_types_status[device_type]["safe"] += 1
+    
+    # Timeline data - devices reaching EOS by month (next 12 months)
+    timeline_data = []
+    current_date = datetime.now()
+    
+    for i in range(12):
+        month_start = current_date + timedelta(days=i*30)
+        month_end = current_date + timedelta(days=(i+1)*30)
+        
+        devices_in_month = len([
+            d for d in tracked_devices
+            if 0 <= d["device"]["days_until_eos"] <= (i+1)*30
+            and d["device"]["days_until_eos"] > i*30
+        ])
+        
+        timeline_data.append({
+            "month": month_start.strftime("%b %y"),
+            "count": devices_in_month,
+            "month_num": i
+        })
+    
+    # Health score (0-100)
+    if total_devices > 0:
+        health_score = int(
+            (safe_devices * 100 + approaching_devices * 50 + warning_devices * 25) / total_devices
+        )
+    else:
+        health_score = 100
+    
+    # Calculate trends (comparing to hypothetical previous month)
+    # This is simplified - you could track historical data
+    devices_at_risk = warning_devices + not_supported_devices
+    risk_percentage = int((devices_at_risk / total_devices * 100)) if total_devices > 0 else 0
     
     return templates.TemplateResponse(
         "dashboard.html",
@@ -58,11 +121,22 @@ def dashboard(
             "request": request,
             "current_user": current_user,
             "flash_messages": get_flash_messages(request),
+            # Basic stats
             "total_devices": total_devices,
-            "active_devices": active_devices,
+            "safe_devices": safe_devices,
+            "warning_devices": warning_devices,
             "approaching_devices": approaching_devices,
-            "eos_devices": eos_devices,
-            "upcoming_alerts": upcoming_alerts[:5],  # Top 5
+            "not_supported_devices": not_supported_devices,
+            "health_score": health_score,
+            "risk_percentage": risk_percentage,
+            # Alerts
+            "critical_alerts": critical_alerts[:5],  # Top 5 critical
+            "upcoming_alerts": upcoming_alerts[:5],  # Top 5 upcoming
+            # Analytics
+            "device_types": dict(device_types),
+            "device_types_status": dict(device_types_status),
+            "timeline_data": timeline_data,
+            # Recent activity
             "recent_devices": tracked_devices[:5]  # Most recent 5
         }
     )

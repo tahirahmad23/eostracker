@@ -12,7 +12,7 @@
 
 ### 2. Validate JSON Only
 ```bash
-docker exec eos_tracker_api python database/device_cli.py validate /tmp/devices.json
+docker exec eos_tracker_web python database/device_cli.py validate /tmp/devices.json
 ```
 
 ---
@@ -20,19 +20,19 @@ docker exec eos_tracker_api python database/device_cli.py validate /tmp/devices.
 ### 3. Manual Update (Step by Step)
 ```bash
 # Copy file to container
-docker cp devices.json eos_tracker_api:/tmp/devices.json
+docker cp devices.json eos_tracker_web:/tmp/devices.json
 
 # Validate
-docker exec eos_tracker_api python database/device_cli.py validate /tmp/devices.json
+docker exec eos_tracker_web python database/device_cli.py validate /tmp/devices.json
 
 # Dry run
-docker exec eos_tracker_api python database/device_cli.py update /tmp/devices.json --dry-run
+docker exec eos_tracker_web python database/device_cli.py update /tmp/devices.json --dry-run
 
 # Apply
-docker exec eos_tracker_api python database/device_cli.py update /tmp/devices.json
+docker exec eos_tracker_web python database/device_cli.py update /tmp/devices.json
 
 # Cleanup
-docker exec eos_tracker_api rm /tmp/devices.json
+docker exec eos_tracker_web rm /tmp/devices.json
 ```
 
 ---
@@ -40,20 +40,20 @@ docker exec eos_tracker_api rm /tmp/devices.json
 ### 4. Backup Database
 ```bash
 # Export to container
-docker exec eos_tracker_api python database/device_cli.py export /tmp/backup.json
+docker exec eos_tracker_web python database/device_cli.py export /tmp/backup.json
 
 # Copy to host
-docker cp eos_tracker_api:/tmp/backup.json ./backup_$(date +%Y%m%d).json
+docker cp eos_tracker_web:/tmp/backup.json ./backup_$(date +%Y%m%d).json
 
 # Cleanup
-docker exec eos_tracker_api rm /tmp/backup.json
+docker exec eos_tracker_web rm /tmp/backup.json
 ```
 
 ---
 
 ### 5. View Statistics
 ```bash
-docker exec eos_tracker_api python database/device_cli.py stats
+docker exec eos_tracker_web python database/device_cli.py stats
 ```
 
 ---
@@ -85,7 +85,7 @@ docker exec eos_tracker_api python database/device_cli.py stats
 2. **Backup before major updates** - Use export command
 3. **Validate JSON** - Before copying to production
 4. **Check container name** - `docker ps`
-5. **Monitor logs** - `docker logs -f eos_tracker_api`
+5. **Monitor logs** - `docker logs -f eos_tracker_web`
 
 ---
 
@@ -137,17 +137,17 @@ If something goes wrong:
 
 ```bash
 # 1. Stop accepting traffic (optional)
-docker pause eos_tracker_api
+docker pause eos_tracker_web
 
 # 2. Restore from backup
-docker cp backup_20260129.json eos_tracker_api:/tmp/restore.json
-docker exec eos_tracker_api python database/device_cli.py update /tmp/restore.json
+docker cp backup_20260129.json eos_tracker_web:/tmp/restore.json
+docker exec eos_tracker_web python database/device_cli.py update /tmp/restore.json
 
 # 3. Verify
-docker exec eos_tracker_api python database/device_cli.py stats
+docker exec eos_tracker_web python database/device_cli.py stats
 
 # 4. Resume traffic
-docker unpause eos_tracker_api
+docker unpause eos_tracker_web
 ```
 
 ---

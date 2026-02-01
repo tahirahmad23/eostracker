@@ -78,9 +78,9 @@
                         <td data-label="REMAINING" class="mono" style="text-align: right;">{{ device.days_until_eos }}d
                         </td>
                         <td data-label="STATUS">
-                            {% if device.status == "active" %}
-                            <span class="badge badge-active">{{ device.status }}</span>
-                            {% elif device.status == "approaching" %}
+                            {% if device.status == "safe" %}
+                            <span class="badge badge-active">SAFE</span>
+                            {% elif device.status == "approaching" or device.status == "warning" %}
                             <span class="badge badge-warn">WARN</span>
                             {% else %}
                             <span class="badge badge-crit">EOS</span>
